@@ -3,8 +3,9 @@ import { logout, signin, signup } from './Controller/Auth/Auth.controller.ts';
 
 const router = express.Router();
 
-router.get("/signin", signin)
-router.get("/signup", signup);
+// Create new user
+router.post("/signup", signup);
+router.post("/signin", signin)
 router.get("/logout",logout)
 
 export default router;
