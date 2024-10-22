@@ -11,7 +11,13 @@ import { isAuthenticated } from "../middleware/auth.middle.ts";
 
 const router = express.Router();
 
-router.use(isAuthenticated);
+// Create new user
+router.post("/signup", multerUpload.single("avatar"), signup);
+router.post("/signin", signin);
 
+router.use(isAuthenticated);
+router.get("/logout", logout);
+router.get("/me", getMYProfile);
+router.get("/search", searchUser);
 
 export default router;
