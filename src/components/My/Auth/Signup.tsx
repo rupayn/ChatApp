@@ -77,6 +77,7 @@ export default function Signup() {
               <div className="grid gap-2">
                 <Label htmlFor="first-name">Full name</Label>
                 <Input
+                  name="fname"
                   id="first-name"
                   className="max-w-80"
                   placeholder="john"
