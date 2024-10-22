@@ -32,6 +32,7 @@ export default function Signin() {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="m@example.com"
                   required
                 />
@@ -50,6 +51,7 @@ export default function Signin() {
                   id="password"
                   placeholder="Enter password"
                   value={password}
+                  name="password"
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
                   required

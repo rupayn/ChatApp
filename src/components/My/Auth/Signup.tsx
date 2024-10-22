@@ -86,7 +86,13 @@ export default function Signup() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="uname">User Name</Label>
-              <Input id="uname" type="text" placeholder="john-doe" required />
+              <Input
+                id="uname"
+                type="text"
+                placeholder="john-doe"
+                name="uname"
+                required
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -94,6 +100,7 @@ export default function Signup() {
                 id="email"
                 type="email"
                 placeholder="m@example.com"
+                name="email"
                 required
               />
             </div>
@@ -101,6 +108,7 @@ export default function Signup() {
               <Label htmlFor="password">Password</Label>
               <PasswordInput
                 id="password"
+                name="password"
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
