@@ -2,7 +2,7 @@ import express from "express";
 
 import { multerUpload } from "../middleware/multer.middle.ts";
 import { isAuthenticated } from "../middleware/auth.middle.ts";
-import { addMembers, myChats, myGroup, newGroupChat, removeMembers } from "../Controller/Chat/Chat.controller.ts";
+import { addMembers, leaveGroup, myChats, myGroup, newGroupChat, removeMembers } from "../Controller/Chat/Chat.controller.ts";
 
 const router = express.Router();
 
@@ -14,5 +14,6 @@ router.get("/mychat", myChats);
 router.get("/mygroups",myGroup)
 router.put("/addmembers",addMembers)
 router.put("/removemembers",removeMembers)
+router.delete("/leavegroup/:id",leaveGroup)
 
 export default router;

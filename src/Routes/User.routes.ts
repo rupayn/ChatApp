@@ -13,7 +13,7 @@ router.post("/signup",signup);
 router.post("/signin",signin);
 
 router.use(isAuthenticated);
-router.post("/logout",logout);
+router.get("/logout",logout);
 router.get("/me", getMYProfile);
 router.get("/search", searchUser);
 

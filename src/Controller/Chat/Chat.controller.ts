@@ -145,12 +145,12 @@ export const removeMembers =  TryCatch(async (req, res,next) => {
      Chat.findById(chatId),
      User.findById(userId, "fname"),
    ]);
- 
    if (!chat) return next(new ErrorHandler("Chat not found", 404));
-
+   
    if (!chat.groupChat)
-     return next(new ErrorHandler("This is not a group chat", 400));
-  const usr=req.user;
+    return next(new ErrorHandler("This is not a group chat", 400));
+    const usr=req.user;
+    if(userId.toString()===usr?.toString()) return next(new ErrorHandler("You Cannot remove your self",403))
    if (chat.creator.toString() !== usr?.toString())
      return next(new ErrorHandler("You are not allowed to remove members", 403));
 
@@ -175,3 +175,45 @@ export const removeMembers =  TryCatch(async (req, res,next) => {
     message: `Member ${userThatWillBeRemoved.fname} removed successfully`,
   })
 })
+
+export const leaveGroup = TryCatch(async (req, res, next) => {
+  const chatId = req.params.id;
+// console.log(chatId);
+
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) return next(new ErrorHandler("Chat not found", 404));
+
+  if (!chat.groupChat)
+    return next(new ErrorHandler("This is not a group chat", 400));
+  const usr=req.user;
+  const remainingMembers = chat.members.filter(
+    (member:any) => member.toString() !== usr?.toString()
+  );
+
+  if (remainingMembers.length < 3)
+    return next(new ErrorHandler("Group must have at least 3 members", 400));
+
+  if (chat.creator.toString() === usr?.toString()) {
+    // const randomElement = Math.floor(Math.random() * remainingMembers.length);
+    const newCreator = remainingMembers[0];
+    chat.creator = newCreator;
+  }
+
+  chat.members = remainingMembers;
+
+  const [user] = await Promise.all([
+    User.findById(req.user, "fname"),
+    chat.save(),
+  ]);
+
+  emitEvent(req, ALERT, chat.members, {
+    chatId,
+    message: `User ${user.fname} has left the group`,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Leave Group Successfully",
+  });
+});
