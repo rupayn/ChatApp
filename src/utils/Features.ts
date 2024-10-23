@@ -26,3 +26,8 @@ class ErrorHandler extends Error {
 }
 
 export {ErrorHandler}
+
+export const emitEvent = (req:any, event:any, users:any, data:any) => {
+  console.log(event);
+  
+};

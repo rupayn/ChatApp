@@ -5,6 +5,7 @@ import { connectDb } from "./src/utils/ConnectDb.ts"
 import dotenv from "dotenv";
 import { errorMiddleware } from "./src/middleware/error.middle.ts";
 import cookieParser from "cookie-parser"
+import { createUser } from "./src/Seeders/user.ts";
 
 dotenv.config({
     path:"./.env"
@@ -18,7 +19,7 @@ connectDb(dbUrl);
 
 app.use("/api/auth",userRoute)
 app.use("/api/user",userRoute)
-app.use("/api/user",chatRoute)
+app.use("/api/chat",chatRoute)
 app.get('/', (req, res) => {
     res.send('Hello World!')
 })

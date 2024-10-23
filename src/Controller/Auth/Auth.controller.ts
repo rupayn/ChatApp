@@ -1,6 +1,6 @@
 import {NextFunction, Request,Response} from "express"
 import { User } from "../../Models/Users.model.ts"
-import { sendToken } from "../../utils/Features.ts";
+import { ErrorHandler, sendToken } from "../../utils/Features.ts";
 import { compare } from "bcrypt";
 import { TryCatch } from "../../middleware/error.middle.ts";
 export const signup=async(req:Request,res:Response)=>{
@@ -19,11 +19,11 @@ export const signin = TryCatch(
     const { email, password } = req.body;
     const usr = await User.findOne({ email }).select("+password");
     if (!usr) {
-      return next(new Error(`User not Found`));
+      return next(new ErrorHandler(`User not Found`,404));
     }
     const pass = await compare(password, usr.password);
     if (!pass) {
-      return next(new Error(`Invalid password`));
+      return next(new ErrorHandler(`Invalid password`,401));
     }
     sendToken(res, usr, 200, `Logged in as ${usr.fname}`);
   }
@@ -43,12 +43,14 @@ export const logout = (req: Request, res: Response) => {
       msg: "You have been logged out",
     });
 };
-export const getMYProfile = TryCatch(async (req: Request, res: Response) => {
+export const getMYProfile = TryCatch(async (req: Request, res: Response,next:NextFunction) => {
   const usr = await User.findById(req.user).select("-password");
+  if (!usr) return next(new ErrorHandler("User not found", 404));
+
   res.send(usr);
 });
 
 export const searchUser = (req: Request, res: Response) =>{
-    const {name}=req.query;
+    const {name=""}=req.query;
     
 }
