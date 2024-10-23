@@ -16,12 +16,13 @@ export const sendToken = (res: Response<any, Record<string, any>>,user: any,code
     })
 }
 
-// class ErrorHandler extends Error{
-//     constructor(msg: string,statusCode: number){
-        
-//         super(msg);
-//         this.statusCode=statusCode;
-//     }
-// }
+class ErrorHandler extends Error {
+  statusCode: number;
 
-// export {ErrorHandler}
+  constructor(msg: string, statusCode: number) {
+    super(msg);
+    this.statusCode = statusCode;
+  }
+}
+
+export {ErrorHandler}
