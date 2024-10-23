@@ -168,6 +168,8 @@ export const removeMembers =  TryCatch(async (req, res,next) => {
      message: `${userThatWillBeRemoved.fname} has been removed from the group`,
      chatId,
    });
+    emitEvent(req, REFETCH_CHAT, allChatMembers);
+
   res.status(200).json({
     success: true,
     message: `Member ${userThatWillBeRemoved.fname} removed successfully`,
