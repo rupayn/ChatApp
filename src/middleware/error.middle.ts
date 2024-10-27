@@ -16,7 +16,7 @@ export const errorMiddleware = (
   });
 };
 
-export const TryCatch = (CatchedFunc: { (req: Request, res: Response, next: NextFunction): Promise<void>; (arg0: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, arg1: Response<any, Record<string, any>>, arg2: NextFunction): any; }) => async (req:Request, res: Response, next:NextFunction) => {
+export const TryCatch = (CatchedFunc: { (req: Request, res: Response, next: NextFunction): Promise<void>; (arg0: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, arg1: Response<any, Record<string, any>>, arg2: NextFunction): any; }):any => async (req:Request, res: Response, next:NextFunction) => {
   try {
     await CatchedFunc(req, res, next);
   } catch (error) {

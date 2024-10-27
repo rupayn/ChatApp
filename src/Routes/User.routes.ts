@@ -6,7 +6,6 @@ import {
   signin,
   signup,
 } from "../Controller/Auth/Auth.controller.ts";
-import { multerUpload } from "../middleware/multer.middle.ts";
 import { isAuthenticated } from "../middleware/auth.middle.ts";
 const router = express.Router();
 router.post("/signup",signup);
