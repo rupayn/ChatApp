@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc && tsc-alias",
+    "start": "node dist/index.js",
     "dev": "nodemon --exec node --no-warnings=ExperimentalWarning --loader ts-node/esm --env-file=.env ./index.ts"
   },
   "author": "Rupayan Nandi",
@@ -34,6 +36,7 @@
     "@types/node": "^22.5.0",
     "@types/uuid": "^10.0.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.10",
     "tslib": "^2.6.3"
   }
 }

@@ -8,11 +8,11 @@ import {
 } from "../Controller/Auth/Auth.controller.ts";
 import { isAuthenticated } from "../middleware/auth.middle.ts";
 const router = express.Router();
-router.post("/signup",signup);
-router.post("/signin",signin);
+router.post("/signup", signup);
+router.post("/signin", signin);
 
 router.use(isAuthenticated);
-router.get("/logout",logout);
+router.get("/logout", logout);
 router.get("/me", getMYProfile);
 router.get("/search", searchUser);
 
