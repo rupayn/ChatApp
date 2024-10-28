@@ -68,20 +68,20 @@ export const searchUser = TryCatch(async (req: Request, res: Response,next:NextF
     uname: { $regex: name, $options: "i" },
   });
 
-  if(!allUsersExceptMeAndFriends){
+  if(allUsersExceptMeAndFriends.length==0){
     allUsersExceptMeAndFriends = await User.find({
       _id: { $nin: allUsersOfMyChats },
       email: { $regex: name, $options: "i" },
     });
   }
-  if(!allUsersExceptMeAndFriends){
+  if(allUsersExceptMeAndFriends.length==0){
     allUsersExceptMeAndFriends = await User.find({
       _id: { $nin: allUsersOfMyChats },
       fname: { $regex: name, $options: "i" },
     });
   }
   
-  if(!allUsersExceptMeAndFriends) return next(new ErrorHandler("We can not find user", 404));
+  if(allUsersExceptMeAndFriends.length==0) return next(new ErrorHandler("We can not find user", 404));
   
 
   // Modifying the response
