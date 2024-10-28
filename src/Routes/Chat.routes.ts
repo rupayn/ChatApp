@@ -9,6 +9,7 @@ import {
   addMembers,
   deleteGroup,
   getChatDetails,
+  getMessages,
   leaveGroup,
   myChats,
   myGroup,
@@ -17,17 +18,27 @@ import {
   renameGroup,
   uploadAttachment,
 } from "../Controller/Chat/Chat.controller.ts";
+import { addMemberValidator, chatIdValidator, leaveGroupValidator, newGroupValidator, removeMemberValidator, renameValidator, sendAttachmentsValidator, validateHandler } from "../utils/validator.ts";
 
 const router = express.Router();
 
 router.use(isAuthenticated);
-router.post("/newgrpchat", newGroupChat);
+router.post("/newgrpchat",newGroupValidator(),validateHandler, newGroupChat);
 router.get("/mychat", myChats);
 router.get("/mygroups", myGroup);
-router.put("/addmembers", addMembers);
-router.put("/removemembers", removeMembers);
-router.delete("/leavegroup/:id", leaveGroup);
+router.put("/addmembers",addMemberValidator(),validateHandler, addMembers);
+router.put("/removemembers", removeMemberValidator(),validateHandler, removeMembers);
+router.delete("/leavegroup/:id",leaveGroupValidator(),validateHandler, leaveGroup);
 
-router.post("/uploadattachment", attachmentsMulter, uploadAttachment);
-router.route("/:id").get(getChatDetails).put(renameGroup).delete(deleteGroup);
+router.post("/uploadattachment", attachmentsMulter,sendAttachmentsValidator(),validateHandler, uploadAttachment);
+
+router.get("/getmessages/:id",chatIdValidator(),validateHandler, getMessages);
+
+router
+  .route("/:id")
+  .get(chatIdValidator(), validateHandler, getMessages)
+  .put(renameValidator(), validateHandler, renameGroup)
+  .delete(chatIdValidator(), validateHandler, deleteGroup);
+
+
 export default router;

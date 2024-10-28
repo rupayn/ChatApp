@@ -1,31 +1,37 @@
-// import {v2 as cloudinary} from "cloudinary";
-// import {v4 as uuid} from "uuid";
-// export const uploadFilesToCloudinary = async (files = []) => {
-//     const uploadPromises = files.map((file) => {
-//       return new Promise((resolve, reject) => {
-//         cloudinary.uploader.upload(
-//           // getBase64(file),
-//           {
-//             resource_type: "auto",
-//             public_id: uuid(),
-//           },
-//           (error, result) => {
-//             if (error) return reject(error);
-//             resolve(result);
-//           }
-//         );
-//       });
-//     });
+import {v2 as cloudinary} from "cloudinary";
+import {v4 as uuid} from "uuid";
+import { getBase64 } from "./Features.ts";
+export const uploadFilesToCloudinary = async (files = []) => {
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(
+          getBase64(file),
 
-//     try {
-//       const results = await Promise.all(uploadPromises);
+          {
+            resource_type: "auto",
+            public_id: uuid(),
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          }
+        );
+      });
+    });
 
-//       const formattedResults = results.map((result:any) => ({
-//         public_id: result.public_id,
-//         url: result.secure_url,
-//       }));
-//       return formattedResults;
-//     } catch (err:any) {
-//       throw new Error("Error uploading files to cloudinary", err);
-//     }
-// };
+    try {
+      const results = await Promise.all(uploadPromises);
+
+      const formattedResults = results.map((result:any) => ({
+        public_id: result.public_id,
+        url: result.secure_url,
+      }));
+      return formattedResults;
+    } catch (err:any) {
+      throw new Error("Error uploading files to cloudinary", err);
+    }
+};
+
+export const deleteFilesFromCloudinary=async(public_id:any[])=>{
+    
+}

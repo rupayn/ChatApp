@@ -3,6 +3,7 @@ import { User } from "../../Models/Users.model.ts";
 import { ErrorHandler, sendToken } from "../../utils/Features.ts";
 import { compare } from "bcrypt";
 import { TryCatch } from "../../middleware/error.middle.ts";
+import { Chat } from "../../Models/Chat.model.ts";
 export const signup = async (req: Request, res: Response) => {
   const { fname, uname, password, email } = req.body;
   const avatar = {
@@ -16,7 +17,11 @@ export const signup = async (req: Request, res: Response) => {
 export const signin = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-    const usr = await User.findOne({ email }).select("+password");
+    let usr = await User.findOne({ email }).select("+password");
+    if (!usr) {
+      usr = await User.findOne({ uname:email }).select("+password");
+    }
+    
     if (!usr) {
       return next(new ErrorHandler(`User not Found`, 404));
     }
@@ -51,6 +56,46 @@ export const getMYProfile = TryCatch(
   }
 );
 
-export const searchUser = (req: Request, res: Response) => {
-  const { name = "" } = req.query;
-};
+export const searchUser = TryCatch(async (req: Request, res: Response,next:NextFunction) => {
+  const { name } = req.query;
+  const usr = String(req.user);
+
+  const myChats = await Chat.find({ groupChat: false, members: usr });
+  const allUsersOfMyChats = myChats.flatMap((chat) => chat.members);
+  // Finding all users except me and my friends
+  let allUsersExceptMeAndFriends = await User.find({
+    _id: { $nin: allUsersOfMyChats },
+    uname: { $regex: name, $options: "i" },
+  });
+
+  if(!allUsersExceptMeAndFriends){
+    allUsersExceptMeAndFriends = await User.find({
+      _id: { $nin: allUsersOfMyChats },
+      email: { $regex: name, $options: "i" },
+    });
+  }
+  if(!allUsersExceptMeAndFriends){
+    allUsersExceptMeAndFriends = await User.find({
+      _id: { $nin: allUsersOfMyChats },
+      fname: { $regex: name, $options: "i" },
+    });
+  }
+  
+  if(!allUsersExceptMeAndFriends) return next(new ErrorHandler("We can not find user", 404));
+  
+
+  // Modifying the response
+  const users = allUsersExceptMeAndFriends.map(({ _id, fname, avatar }) => ({
+    _id,
+    fname,
+    avatar: avatar.public_url,
+  }));
+
+  res.status(200).json({
+    success: true,
+    users
+  });
+}
+);
+
+  

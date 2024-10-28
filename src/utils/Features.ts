@@ -1,5 +1,6 @@
 import { Response } from "express"
 import jwt from "jsonwebtoken"
+import { userSocketIDs } from "../../index.ts";
 export const generateVerificationCode=()=>Math.round(Math.random()*1000000).toString()
 
 export const sendToken = (res: Response<any, Record<string, any>>,user: any,code: number,msg: string)=>{
@@ -31,3 +32,12 @@ export const emitEvent = (req:any, event:any, users:any, data?:any) => {
   console.log(event,data);
   
 };
+
+export const getSockets = (users = []) => {
+  const sockets = users.map((user:string) => userSocketIDs.get(user.toString()));
+
+  return sockets;
+};
+
+export const getBase64 = (file:any) =>
+  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;

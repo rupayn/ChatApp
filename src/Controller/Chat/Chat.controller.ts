@@ -10,6 +10,7 @@ import { emitEvent, ErrorHandler } from "../../utils/Features.ts";
 import { Chat } from "../../Models/Chat.model.ts";
 import { User } from "../../Models/Users.model.ts";
 import { Message } from "../../Models/Message.model.ts";
+import { deleteFilesFromCloudinary } from "../../utils/cloudnary.ts";
 // import { uploadFilesToCloudinary } from "../../utils/cloudnaryMessage_model.ts";
 
 export const newGroupChat = TryCatch(
@@ -348,7 +349,34 @@ export const renameGroup = TryCatch(async function (req, res, next) {
   });
 });
 export const deleteGroup = TryCatch(async function (req, res, next) {
-  console.log(req.body);
+  const chatId = String(req.params.id);
+  const chat = await Chat.findById(chatId);
+  if (!chat) return next(new ErrorHandler("Chat not found", 404));
+  const members = chat.members
+  const usr=req.user
+  if(chat.groupChat&&chat.creator.toString()!==usr?.toString()){
+    return next(new ErrorHandler("You are not allowed to clear group chat", 403));
+  }
+  if(chat.groupChat&&!chat.members.includes(usr?.toString()))
+    return next(new ErrorHandler("You are not allowed to clear group chat , because you are not in group", 403));
+
+  const msgWithAttachments = await Message.find({ chat:chatId, attachments:{ $exists:true,$ne:[]}})
+
+  const public_ids:any[] = [];
+
+  msgWithAttachments.forEach(msg=>{
+    msg.attachments.forEach((e: any) => public_ids.push(e.public_id));
+  })
+
+  await Promise.all([
+    deleteFilesFromCloudinary(public_ids),
+    chat.deleteOne(),
+    Message.deleteMany({
+      chat: chatId,
+    })
+  ])
+
+  emitEvent(req,REFETCH_CHAT,members)
 
   res.status(200).json({
     success: true,
@@ -357,37 +385,39 @@ export const deleteGroup = TryCatch(async function (req, res, next) {
   });
 });
 
-// export const getMessages = TryCatch(async (req, res, next) => {
-//   const chatId = req.params.id;
-//   const page  = parseInt(req.query.page as string || '1',10);
+export const getMessages = TryCatch(async (req, res, next) => {
+  const chatId = req.params.id;
+  const pg=String(req.query)
+  const page  = parseInt(pg || '1',10);
+  
 
-//   const resultPerPage = 20;
-//   const skip = (page - 1) * resultPerPage;
+  const resultPerPage = 20;
+  const skip = (page - 1) * resultPerPage;
 
-//   const chat = await Chat.findById(chatId);
+  const chat = await Chat.findById(chatId);
 
-//   if (!chat) return next(new ErrorHandler("Chat not found", 404));
-//   const usr=req.user;
-//   if (!chat.members.includes(usr?.toString()))
-//     return next(
-//       new ErrorHandler("You are not allowed to access this chat", 403)
-//     );
+  if (!chat) return next(new ErrorHandler("Chat not found", 404));
+  const usr=req.user;
+  if (!chat.members.includes(usr?.toString()))
+    return next(
+      new ErrorHandler("You are not allowed to access this chat", 403)
+    );
 
-//   const [messages, totalMessagesCount] = await Promise.all([
-//     Message.find({ chat: chatId })
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(resultPerPage)
-//       .populate("sender", "name")
-//       .lean(),
-//     Message.countDocuments({ chat: chatId }),
-//   ]);
+  const [messages, totalMessagesCount] = await Promise.all([
+    Message.find({ chat: chatId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(resultPerPage)
+      .populate("sender", "fname")
+      .lean(),
+    Message.countDocuments({ chat: chatId }),
+  ]);
+console.log(totalMessagesCount);
+  const totalPages = Math.ceil(totalMessagesCount / resultPerPage) || 0;
 
-//   const totalPages = Math.ceil(totalMessagesCount / resultPerPage) || 0;
-
-//   res.status(200).json({
-//     success: true,
-//     messages: messages.reverse(),
-//     totalPages,
-//   });
-// });
+  res.status(200).json({
+    success: true,
+    messages: messages.reverse(),
+    totalPages,
+  });
+});

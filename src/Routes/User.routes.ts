@@ -7,9 +7,11 @@ import {
   signup,
 } from "../Controller/Auth/Auth.controller.ts";
 import { isAuthenticated } from "../middleware/auth.middle.ts";
+import { noUpload, singleAvatar } from "../middleware/multer.middle.ts";
+import { loginValidator, registerValidator, validateHandler } from "../utils/validator.ts";
 const router = express.Router();
-router.post("/signup", signup);
-router.post("/signin", signin);
+router.post("/signup",singleAvatar,registerValidator(),validateHandler, signup);
+router.post("/signin",noUpload,loginValidator(),validateHandler, signin);
 
 router.use(isAuthenticated);
 router.get("/logout", logout);
