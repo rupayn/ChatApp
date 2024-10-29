@@ -25,8 +25,22 @@ class ErrorHandler extends Error {
     this.statusCode = statusCode;
   }
 }
+class successHandler extends Error {
+  statusCode: number;
+  success: boolean;
+  msg: string;
 
-export {ErrorHandler}
+  constructor(success:boolean,msg: string, statusCode: number) {
+    super();
+    this.statusCode = statusCode;
+    this.success= success;
+    this.msg= msg;
+    
+  }
+  
+}
+
+export {ErrorHandler,successHandler}
 
 export const emitEvent = (req:any, event:any, users:any, data?:any) => {
   console.log(event,data);

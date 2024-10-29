@@ -1,9 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import { User } from "../../Models/Users.model.ts";
-import { ErrorHandler, sendToken } from "../../utils/Features.ts";
+import { emitEvent, ErrorHandler, sendToken, successHandler } from "../../utils/Features.ts";
 import { compare } from "bcrypt";
 import { TryCatch } from "../../middleware/error.middle.ts";
 import { Chat } from "../../Models/Chat.model.ts";
+import { NEW_REQUEST, REFETCH_CHAT } from "../../Constants/event.ts";
+import { Request as RequestModel } from "../../Models/Request.model.ts";
 export const signup = async (req: Request, res: Response) => {
   const { fname, uname, password, email } = req.body;
   const avatar = {
@@ -98,4 +100,132 @@ export const searchUser = TryCatch(async (req: Request, res: Response,next:NextF
 }
 );
 
-  
+export const sendFriendRequest = TryCatch(async (req, res, next) => {
+  const { userId } = req.body;
+
+  const request = await RequestModel.findOne({
+    $or: [
+      { sender: req.user, receiver: userId },
+      { sender: userId, receiver: req.user },
+    ],
+  });
+
+  if (request) {
+  return next(new ErrorHandler("Friend request already sent",401))
+}
+
+  await RequestModel.create({
+    sender: req.user,
+    receiver: userId,
+  });
+
+  emitEvent(req, NEW_REQUEST, [userId]);
+
+  res.status(200).json({
+    success: true,
+    message: "Friend Request Sent",
+  });
+});
+
+export const getMyNotifications = TryCatch(async (req, res) => {
+  const requests = await RequestModel.find({ receiver: req.user }).populate(
+    "sender",
+    "fname avatar"
+  );
+
+  const allRequests = requests.map(({ _id, sender }) => ({
+    _id,
+    sender: {
+      _id: sender._id,
+      fname: sender.fname,
+      avatar: sender.avatar.public_url,
+    },
+  }));
+
+  res.status(200).json({
+    success: true,
+    allRequests,
+  });
+});
+
+export const acceptFriendRequest = TryCatch(async (req, res, next) => {
+  const { requestId, accept } = req.body;
+
+  const request = await RequestModel.findById(requestId)
+    .populate("sender", "fname")
+    .populate("receiver", "fname");
+
+  if (!request) return next(new ErrorHandler("Request not found", 404));
+  const usr=req.user;
+  if (request.receiver._id.toString() !== usr?.toString())
+    return next(
+      new ErrorHandler("You are not authorized to accept this request", 401)
+    );
+
+  if (!accept) {
+    await request.deleteOne();
+    // return next(new successHandler(true,"Friend Request rejected",201))
+     return res.status(200).json({
+      success: true,
+      message: "Friend Request Rejected",
+    });
+  }
+
+  const members = [request.sender._id, request.receiver._id];
+
+  await Promise.all([
+    Chat.create({
+      members,
+      fname: `${request.sender.fname}-${request.receiver.fname}`,
+    }),
+    request.deleteOne(),
+  ]);
+
+  emitEvent(req, REFETCH_CHAT, members);
+
+  res.status(200).json({
+    success: true,
+    message: "Friend Request Accepted",
+    senderId: request.sender._id,
+  });
+});
+
+export const getMyFriends = TryCatch(async (req, res) => {
+  const chatId = req.query.chatId;
+
+  const chats = await Chat.find({
+    members: req.user,
+    groupChat: false,
+  }).populate("members", "fname avatar");
+
+  const usr=req.user
+  const friends = chats.map((e) => {
+    const otherUser = e.members.find(
+      (member: any) => member._id.toString() !== usr?.toString()
+    );
+    
+    return {
+      _id: otherUser?._id,
+      name: otherUser.fname,
+      avatar: otherUser.avatar.public_url,
+    };
+  });
+
+  if (chatId) {
+    const chat = await Chat.findById(chatId);
+
+    const availableFriends = friends.filter(
+      (friend) => !chat.members.includes(friend._id)
+    );
+
+    return res.status(200).json({
+      success: true,
+      friends: availableFriends,
+    });
+  } else {
+    return res.status(200).json({
+      success: true,
+      friends,
+    });
+  }
+});

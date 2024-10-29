@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 export const errorMiddleware = (
@@ -16,10 +16,12 @@ export const errorMiddleware = (
   });
 };
 
-export const TryCatch = (CatchedFunc: { (req: Request, res: Response, next: NextFunction): Promise<void>; (arg0: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, arg1: Response<any, Record<string, any>>, arg2: NextFunction): any; }):any => async (req:Request, res: Response, next:NextFunction) => {
-  try {
-    await CatchedFunc(req, res, next);
-  } catch (error) {
-    next(error);
-  }
-};
+export const TryCatch =
+  (CatchedFunc: RequestHandler): RequestHandler =>
+  async (req, res, next) => {
+    try {
+      await CatchedFunc(req, res, next);
+    } catch (error) {
+      next(error);
+    }
+  };
