@@ -47,11 +47,7 @@ export const emitEvent = (req:any, event:any, users:any, data?:any) => {
   
 };
 
-export const getSockets = (users = []) => {
-  const sockets = users.map((user:string) => userSocketIDs.get(user.toString()));
-
-  return sockets;
-};
+export const getSockets = (users = []) => users.map((user:string) => userSocketIDs.get(user.toString()));
 
 export const getBase64 = (file:any) =>
   `data:${file.mimetype};base64,${file.buffer.toString("base64")}`;
