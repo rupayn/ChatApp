@@ -13,6 +13,7 @@ export const sendToken = (res: Response<any, Record<string, any>>,user: any,code
         secure:true
     }).json({
         success: true,
+        user,
         msg
     })
 }

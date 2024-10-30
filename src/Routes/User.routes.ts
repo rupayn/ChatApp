@@ -5,6 +5,7 @@ import {
   getMyNotifications,
   getMYProfile,
   logout,
+  renameUser,
   searchUser,
   sendFriendRequest,
   signin,
@@ -20,6 +21,7 @@ router.post("/signin",noUpload,loginValidator(),validateHandler, signin);
 router.use(isAuthenticated);
 router.get("/logout", logout);
 router.get("/me", getMYProfile);
+router.put("/renameuser", renameUser);
 router.get("/search", searchUser);
 router.put("/sendrequest",sendRequestValidator(),validateHandler,sendFriendRequest );
 router.put(

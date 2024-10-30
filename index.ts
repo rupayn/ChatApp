@@ -5,7 +5,8 @@ import { connectDb } from "./src/utils/ConnectDb.ts";
 import dotenv from "dotenv";
 import { errorMiddleware, TryCatch } from "./src/middleware/error.middle.ts";
 import cookieParser from "cookie-parser";
-import {Server} from "socket.io"
+import {Server} from "socket.io";
+import cors from "cors"
 import { createServer } from "http";
 import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, ONLINE_USERS, START_TYPING, STOP_TYPING } from "./src/Constants/event.ts";
 import { v4 as uuid } from "uuid";
@@ -25,6 +26,12 @@ dotenv.config({
   path: "./.env",
 });
 const app = express();
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS,
+    credentials:true
+  })
+);
 const httpServer=createServer(app)
 const io = new Server(httpServer, {
    cors: corsOptions,
@@ -44,17 +51,21 @@ app.get("/", (req, res) => {
 });
 
 io.use((socket, next) => {
-  cookieParser()(
-    socket.request,
-    socket.request.res,
-    async (err) => await socketAuthenticator(err, socket, next)
-  );
+  // cookieParser()(
+  //   socket.request,
+  //   socket.request.res,
+  //   async (err) => await socketAuthenticator(err, socket, next)
+  // );
 });
 
 io.on("connection", (socket) => {
   console.log(`Connection established and ${socket.id} connected`);
   
-  const user = socket?.user;
+  // const user = socket?.user;
+  const user={
+    _id:"swder",
+    name: "Swder",
+  }
   userSocketIDs.set(user._id.toString(), socket.id);
 
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {

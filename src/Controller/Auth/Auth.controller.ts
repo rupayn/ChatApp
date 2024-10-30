@@ -31,6 +31,10 @@ export const signin = TryCatch(
     if (!pass) {
       return next(new ErrorHandler(`Invalid password`, 401));
     }
+    usr=await User.findOne({email})
+    if (!usr) {
+      usr = await User.findOne({ uname: email });
+    }
     sendToken(res, usr, 200, `Logged in as ${usr.fname}`);
   }
 );
@@ -229,3 +233,23 @@ export const getMyFriends = TryCatch(async (req, res) => {
     });
   }
 });
+
+export const renameUser=TryCatch(async(req,res,next)=>{
+  const usr=req.user
+  if(!usr) return next(new ErrorHandler("Can't get user id",404))
+  const UserD=await User.findById(usr).select("+password")
+  if(!UserD) return next(new ErrorHandler("User not found",404))
+  const {fname,email,password}=req.body
+  if (fname !== UserD.fname) UserD.fname = fname;
+  if (fname !== UserD.email) UserD.email = email;
+  
+  if(password) UserD.password = password;
+  // if(!pass) return next(new ErrorHandler("Enter correct password",404));
+  
+  
+  await UserD.save()
+  return res.json({
+    success:true,
+    
+  })
+})
