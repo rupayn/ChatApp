@@ -1,4 +1,9 @@
 import { Button } from "@/components/ui/button";
+// import { server } from "@/constant/config";
+// import { RootState } from "@/Store/Store";
+// import axios from "axios";
+// import { useEffect } from "react";
+// import { useSelector } from "react-redux";
 import {  NavLink } from "react-router-dom";
 
 function ContactChat({ className = "visible", isGrp = false }) {
@@ -13,6 +18,25 @@ function ContactChat({ className = "visible", isGrp = false }) {
   //             <h1>Name {i}</h1>
   //           </div>)
   // }
+//   const authStatus = useSelector((state: RootState) => state.auth.UserStatus);
+//   useEffect(() => {
+//     axios
+//       .get(`${server}/api/user/me`,{
+//       withCredentials: true,
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//   })
+//       .then((response) => {
+//         console.log(response);
+//       })
+//       .catch(() => {
+//         // dispatch(logout())
+//         console.log(authStatus);
+//       });
+//   },
+// );
+
   const id = 1;
   return (
     <div

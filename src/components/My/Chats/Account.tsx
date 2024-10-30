@@ -1,33 +1,85 @@
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Pencil, Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "../Auth/PasswordInput";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/Store/Store";
+import axios from "axios";
+import { server } from "@/constant/config";
+import { logout } from "@/Store/AuthSlice";
 
+interface Avatar {
+  public_id: string;
+  public_url: string;
+}
+
+interface UserInterface {
+  avatar: Avatar;
+  _id: string;
+  fname: string;
+  uname: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 function Account() {
   const[disable,setDisable]=useState(true);
-  const[name,setName]=useState("Name")
-  const[mail,setMail]=useState("email@gamil.com")
-  const[password,setPassword]=useState("")
-  const lnk = `https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`;
+  const [successAlert,setSuccessAlert]=useState(false);
+  const [failedAlert,setFailedAlert]=useState(false);
+  const UserDetails = useSelector(
+    (state: RootState) => state.auth.userData
+  ) as UserInterface | null;
+ 
+  
+  const lnk = UserDetails?UserDetails.avatar.public_url:`https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`;
+   const [password, setPassword] = useState("");
   const [file, setFile] = useState(lnk);
+  const [fname, setName] = useState(`${UserDetails?UserDetails.fname:"Name" }`);
+  const [email, setMail] = useState(
+    `${UserDetails?UserDetails.email:"email@gamil.com"}`
+  );
+  const [errorSave,setErrSave]=useState("")
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleChange(e: any) {
     setFile(URL.createObjectURL(e.target.files[0]));
   }
   const editFun=(e: { preventDefault: () => void; })=>{
     e.preventDefault();
+    if(disable==false)axios.put(`${server}/api/user/renameuser`,{fname,email,password},{withCredentials: true,headers: { 'Content-Type': 'application/json'}}).then(()=>{
+      setSuccessAlert(true);
+      setTimeout(() => {
+        setSuccessAlert(false);
+      }, 2000);
+    }).catch((er)=>{
+      setFailedAlert(true);
+      console.log(er.Resonse);
+      
+      setErrSave(er.message)
+      setTimeout(() => {
+        setFailedAlert(false);
+      }, 2000);
+    })
+    
     setDisable((prev)=>!prev)
   }
-  useEffect(() => {
-    // if name and set mail != prev update db
-  }, [setDisable]);
+  const dispatch=useDispatch()
+  const logoutHandler=()=>{
+    axios.get(`${server}/api/auth/logout`,{withCredentials:true}).then(()=>{
+      dispatch(logout())
+   });
+  }
+  // console.log("user",UserDetails)
+  // useEffect(() => {
+  //   // if name and set mail != prev update db
+  // }, [setDisable]);
   return (
     <div className="flex w-full h-full flex-col justify-center items-center bg">
-      {disable ? (
+      {successAlert ? (
         <motion.div
           className="relative  md:-right-[40%]"
           initial={{ opacity: 0, scale: 0.5, right: "-100%" }}
@@ -42,11 +94,15 @@ function Account() {
           <Alert className="w-44  relative md:-right-[40%]">
             <AlertTitle className="inline-block mr-2">Saved </AlertTitle>✅
           </Alert>
-          
         </motion.div>
       ) : (
         <div></div>
       )}
+      {
+        failedAlert?<div className="h-10 w-64 bg-red-300 ml-5 rounded-xl mb-4 flex items-center justify-center font-extrabold ">
+          <p>not saved ❌ {errorSave}</p>
+        </div>:<div></div>
+      }
       <img
         className="w-64 ml-2 h-64 bg-auto mb-5 inline-block rounded-full "
         src={file}
@@ -94,14 +150,14 @@ function Account() {
             type="text"
             disabled={disable}
             className="text-center block bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={name}
+            value={fname}
             onChange={(e) => setName(e.target.value)}
           />
           <Input
             type="text"
             disabled={disable}
             className="text-center mb-4  bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={mail}
+            value={email}
             onChange={(e) => setMail(e.target.value)}
           />
           <label htmlFor="pass" className={disable ? "hidden" : ""}>
@@ -119,6 +175,7 @@ function Account() {
         <Button
           className={disable ? "hover:bg-red-600" : "hidden"}
           variant={"destructive"}
+          onClick={logoutHandler}
         >
           Log Out
         </Button>
