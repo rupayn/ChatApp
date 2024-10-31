@@ -7,6 +7,7 @@ import { errorMiddleware, TryCatch } from "./src/middleware/error.middle.ts";
 import cookieParser from "cookie-parser";
 import {Server} from "socket.io";
 import cors from "cors"
+import {v2 as cloudinary} from "cloudinary"
 import { createServer } from "http";
 import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, ONLINE_USERS, START_TYPING, STOP_TYPING } from "./src/Constants/event.ts";
 import { v4 as uuid } from "uuid";
@@ -41,6 +42,11 @@ app.use(cookieParser());
 app.use(express.json());
 const dbUrl = process.env.DBURL;
 if (dbUrl) connectDb(dbUrl);
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 // createUser(5)
 // createMessagesInAChat("671fdda0111fcb38edfc6499", 50);
 app.use("/api/auth", userRoute);

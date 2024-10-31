@@ -1,7 +1,7 @@
 import {v2 as cloudinary} from "cloudinary";
 import {v4 as uuid} from "uuid";
 import { getBase64 } from "./Features.ts";
-export const uploadFilesToCloudinary = async (files = []) => {
+export const uploadFilesToCloudinary = async (files:any[] = []) => {
     const uploadPromises = files.map((file) => {
       return new Promise((resolve, reject) => {
         cloudinary.uploader.upload(

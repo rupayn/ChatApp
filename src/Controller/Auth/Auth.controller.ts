@@ -6,16 +6,29 @@ import { TryCatch } from "../../middleware/error.middle.ts";
 import { Chat } from "../../Models/Chat.model.ts";
 import { NEW_REQUEST, REFETCH_CHAT } from "../../Constants/event.ts";
 import { Request as RequestModel } from "../../Models/Request.model.ts";
-export const signup = async (req: Request, res: Response) => {
-  const { fname, uname, password, email } = req.body;
+import { uploadFilesToCloudinary } from "../../utils/cloudnary.ts";
+export const signup = TryCatch(
+  async (req: Request, res: Response,next:NextFunction) => {
+    const { fname, uname, password, email } = req.body;
+    const file=req.file
+    let tempUser = await User.findOne({ email: email });
+    if (tempUser) return next(new ErrorHandler("Email already exists", 400));
+    tempUser = await User.findOne({ uname: uname });
+    if (tempUser) return next(new ErrorHandler("User Name already exists", 400));
+  if(!file) return next(new ErrorHandler("Please upload a file",404))
+  const result=await uploadFilesToCloudinary([file])
+  
   const avatar = {
-    public_id: "sdcs",
-    public_url: "w",
+    public_id: result[0].public_id,
+    public_url: result[0].url,
   };
   const userOfDb = await User.create({ fname, uname, password, email, avatar });
 
-  sendToken(res, userOfDb, 201, "User created");
-};
+  const usr=await User.findById(userOfDb._id);
+
+  sendToken(res, usr, 201, "User created");
+}
+)
 export const signin = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
@@ -240,9 +253,19 @@ export const renameUser=TryCatch(async(req,res,next)=>{
   const UserD=await User.findById(usr).select("+password")
   if(!UserD) return next(new ErrorHandler("User not found",404))
   const {fname,email,password}=req.body
-  if (fname !== UserD.fname) UserD.fname = fname;
-  if (fname !== UserD.email) UserD.email = email;
+  if ((fname !== UserD.fname)&&fname) UserD.fname = fname;
+  if ((fname !== UserD.email)&&email) UserD.email = email;
   
+  if(req.file){
+    
+    const result =await uploadFilesToCloudinary([req.file])
+     const avatar = {
+       public_id: result[0].public_id,
+       public_url: result[0].url,
+     };
+     
+     UserD.avatar = avatar;
+  }
   if(password) UserD.password = password;
   // if(!pass) return next(new ErrorHandler("Enter correct password",404));
   
