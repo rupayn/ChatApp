@@ -40,10 +40,10 @@ export const newGroupChat = TryCatch(
 
 export const myChats = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
-    const chat = await Chat.find({ members: req.user }).populate(
-      "members",
-      "fname avatar"
-    );
+    const chat = await Chat.find({
+      members: req.user,
+      groupChat: false,
+    }).populate("members", "fname avatar");
     //   emitEvent(req, REFETCH_CHAT, members);
     const gethOtherMembers = (members: any, uid: any) =>
       members.find((member: any) => member._id.toString() !== uid.toString());
@@ -412,7 +412,7 @@ export const getMessages = TryCatch(async (req, res, next) => {
       .lean(),
     Message.countDocuments({ chat: chatId }),
   ]);
-console.log(totalMessagesCount);
+// console.log(totalMessagesCount);
   const totalPages = Math.ceil(totalMessagesCount / resultPerPage) || 0;
 
   res.status(200).json({

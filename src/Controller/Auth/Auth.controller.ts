@@ -102,11 +102,11 @@ export const searchUser = TryCatch(async (req: Request, res: Response,next:NextF
   
   if(allUsersExceptMeAndFriends.length==0) return next(new ErrorHandler("We can not find user", 404));
   
-
   // Modifying the response
-  const users = allUsersExceptMeAndFriends.map(({ _id, fname, avatar }) => ({
+  const users = allUsersExceptMeAndFriends.map(({ _id,uname, fname, avatar }) => ({
     _id,
     fname,
+    uname,
     avatar: avatar.public_url,
   }));
 
@@ -147,7 +147,7 @@ export const sendFriendRequest = TryCatch(async (req, res, next) => {
 export const getMyNotifications = TryCatch(async (req, res) => {
   const requests = await RequestModel.find({ receiver: req.user }).populate(
     "sender",
-    "fname avatar"
+    "fname avatar uname"
   );
 
   const allRequests = requests.map(({ _id, sender }) => ({
@@ -155,6 +155,7 @@ export const getMyNotifications = TryCatch(async (req, res) => {
     sender: {
       _id: sender._id,
       fname: sender.fname,
+      uname: sender.uname,
       avatar: sender.avatar.public_url,
     },
   }));
