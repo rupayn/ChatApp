@@ -34,11 +34,12 @@ function Account() {
   const UserDetails = useSelector(
     (state: RootState) => state.auth.userData
   ) as UserInterface | null;
- 
+  const [loading, setLoading] = useState(false);
   
   const lnk = UserDetails?UserDetails.avatar.public_url:`https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D`;
    const [password, setPassword] = useState("");
   const [file, setFile] = useState(lnk);
+  const[newFile,setNewFile]=useState(undefined);
   const [fname, setName] = useState(`${UserDetails?UserDetails.fname:"Name" }`);
   const [email, setMail] = useState(
     `${UserDetails?UserDetails.email:"email@gamil.com"}`
@@ -46,37 +47,58 @@ function Account() {
   const [errorSave,setErrSave]=useState("")
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleChange(e: any) {
-    setFile(URL.createObjectURL(e.target.files[0]));
+    setFile(URL.createObjectURL(e.target.files[0]));    
+    setNewFile(e.target.files[0])
   }
+  const dispatch = useDispatch()
+  
   const editFun=(e: { preventDefault: () => void; })=>{
-    e.preventDefault();
-    if(disable==false)axios.put(`${server}/api/user/renameuser`,{fname,email,password},{withCredentials: true,headers: { 'Content-Type': 'application/json'}}).then(()=>{
-      setSuccessAlert(true);
-      setTimeout(() => {
-        setSuccessAlert(false);
-      }, 2000);
-    }).catch((er)=>{
-      setFailedAlert(true);
-      console.log(er.Resonse);
-      
-      setErrSave(er.message)
-      setTimeout(() => {
-        setFailedAlert(false);
-      }, 2000);
-    })
-    
+    e.preventDefault(); 
+    if(disable==false){  
+      setLoading(true)
+      axios
+        .put(
+          `${server}/api/user/renameuser`,
+          { fname, email, password, avatar: newFile },
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        )
+        .then(() => {
+          setLoading(false)
+          setSuccessAlert(true);
+          setTimeout(() => {
+            setSuccessAlert(false);
+          }, 2000);
+        })
+        .catch((er) => {
+          setLoading(false);
+          setFailedAlert(true);
+          console.log(er.Resonse);
+
+          setErrSave(er.message);
+          setTimeout(() => {
+            setFailedAlert(false);
+          }, 2000);
+        });
+      }
     setDisable((prev)=>!prev)
   }
-  const dispatch=useDispatch()
   const logoutHandler=()=>{
     axios.get(`${server}/api/auth/logout`,{withCredentials:true}).then(()=>{
       dispatch(logout())
-   });
+    });
   }
   // console.log("user",UserDetails)
+  
   // useEffect(() => {
   //   // if name and set mail != prev update db
-  // }, [setDisable]);
+  //   axios.get(`${server}/api/user/me`).then((res) => {
+  //     dispatch(login(res.data))
+  //   });
+  // // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [setNewFile,newFile]);
   return (
     <div className="flex w-full h-full flex-col justify-center items-center bg">
       {successAlert ? (
@@ -98,11 +120,13 @@ function Account() {
       ) : (
         <div></div>
       )}
-      {
-        failedAlert?<div className="h-10 w-64 bg-red-300 ml-5 rounded-xl mb-4 flex items-center justify-center font-extrabold ">
+      {failedAlert ? (
+        <div className="h-10 w-64 bg-red-300 ml-5 rounded-xl mb-4 flex items-center justify-center font-extrabold ">
           <p>not saved ❌ {errorSave}</p>
-        </div>:<div></div>
-      }
+        </div>
+      ) : (
+        <div></div>
+      )}
       <img
         className="w-64 ml-2 h-64 bg-auto mb-5 inline-block rounded-full "
         src={file}
@@ -115,7 +139,7 @@ function Account() {
         <Input
           type="file"
           className="hidden"
-          accept=".jpg,.png"
+          accept=".jpg,.png,.jpeg"
           id="img"
           onChange={handleChange}
           required
@@ -176,9 +200,11 @@ function Account() {
           className={disable ? "hover:bg-red-600" : "hidden"}
           variant={"destructive"}
           onClick={logoutHandler}
+          disabled={loading}
         >
           Log Out
         </Button>
+        {loading?<div className="text-center mt-5 font-serif font-extrabold text-3xl">Updating your data ...</div>:<div></div>}
       </div>
     </div>
   );

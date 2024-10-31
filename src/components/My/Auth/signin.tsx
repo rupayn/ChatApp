@@ -20,6 +20,7 @@ import { login } from "@/Store/AuthSlice";
 export default function Signin() {
   const [password, setPassword] = useState("")
   const [email,setEmail]=useState("")
+  const [errorMsg,setErrorMsg] = useState(undefined)
   const dispatch=useDispatch()
   const loginHandler=(email:unknown,password:unknown)=>{
     axios
@@ -47,7 +48,10 @@ export default function Signin() {
       })
       .catch((error) => {
         // Handle failed login
-        console.error(error);
+        setErrorMsg(error.response?.data?.message);
+        setTimeout(() => {
+          setErrorMsg(undefined);
+        },3000)
       });
   }
   const setEmailHandler = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +61,13 @@ export default function Signin() {
     <div className="bg-slate-700">
       <div className="flex h-screen items-center justify-center">
         <Card className="mx-auto max-w-sm">
+          {errorMsg ? (
+            <p className="text-center text-lg font-bold text-black bg-red-300 mt-2 rounded-lg mx-4">
+              {errorMsg}
+            </p>
+          ) : (
+            <div></div>
+          )}
           <CardHeader>
             <CardTitle className="text-2xl">Login</CardTitle>
             <CardDescription>
@@ -71,7 +82,9 @@ export default function Signin() {
                   id="email"
                   type="email"
                   name="email"
-                  onChange={(e)=>{setEmailHandler(e)}}
+                  onChange={(e) => {
+                    setEmailHandler(e);
+                  }}
                   placeholder="m@example.com or abcd123"
                   required
                 />
@@ -96,7 +109,13 @@ export default function Signin() {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full hover:bg-green-200" onClick={()=>{loginHandler(email,password)}}>
+              <Button
+                type="submit"
+                className="w-full hover:bg-green-200"
+                onClick={() => {
+                  loginHandler(email, password);
+                }}
+              >
                 Login
               </Button>
             </div>

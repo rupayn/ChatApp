@@ -14,17 +14,19 @@ function Layout() {
   const dispatch=useDispatch()
   
   const data = useSelector((state: RootState) => state.auth.userData);
-  if(!data)  
-    axios
-      .get(`${server}/api/user/me`, {
-        withCredentials: true,
-      })
-      .then((res) => {
-        dispatch(login(res.data));
-      })
-      .catch((err) => {
-        console.log(err);
-      })
+  setTimeout(()=>{
+    if (!data)
+      axios
+        .get(`${server}/api/user/me`, {
+          withCredentials: true,
+        })
+        .then((res) => {
+          dispatch(login(res.data));
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+  },1000)
   
   return (
     <>
