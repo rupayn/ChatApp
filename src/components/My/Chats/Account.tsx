@@ -57,8 +57,7 @@ function Account() {
     if(disable==false){  
       setLoading(true)
       console.log(email,password,fname)
-      axios
-        .put(
+      axios.put(
           `${server}/api/user/renameuser`,
           { fname, email, password, avatar: newFile },
           {

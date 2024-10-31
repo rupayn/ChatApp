@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   Bell,
   BellOff,
+  CircleCheckBig,
   Moon,
   SquareX,
   SunMoon,
@@ -39,6 +40,23 @@ interface searchUserType {
   fname: string;
   uname: string;
 }
+
+interface notificationFrist {
+  success: boolean;
+  allRequests:[]
+}
+
+interface notificationSecond{
+  _id: string;
+  sender:{
+    _id:  string,
+    fname:  string,
+    uname:  string,
+    avatar: string
+  }
+}
+
+
 function HeaderBar() {
   const userAvaiable = useSelector(
     (state: RootState) => state.auth.userData
@@ -46,6 +64,7 @@ function HeaderBar() {
   const [mode, setMode] = useState("Light");
   const dispatch = useDispatch();
   const thememd = useSelector((state: RootState) => state.theme);
+  // const[refectchNotification,setRefectchNotification]=useState(true)
   const [searchLoading,setSearchLoading]=useState(false);
   useEffect(() => {
     const rootElement = document.querySelector("#root");
@@ -64,8 +83,32 @@ function HeaderBar() {
     }
   };
   const [Visible, setVisible] = useState("hidden");
-  const VisibleHandeler = () => {
+  const [notifiactionUser, setNotifiactionUser] =
+    useState < notificationFrist>();
+  const [notificationCount, setNotificationCount] =useState(0)
+  useEffect(() => {
+    if (notifiactionUser === undefined) {
+      axios
+        .get(`${server}/api/user/notifications`, { withCredentials: true })
+        .then((res) => {
+          console.log(res);
+          
+          setNotifiactionUser(res.data);
+          setNotificationCount(res.data.allRequests.length);
+        })
+        .catch((err) => {
+          console.log(err.response?.data?.message);
+        });
+    }
+  });
+  const VisibleHandeler = async() => {
     setVisible((prev) => (prev === "Visible" ? "hidden" : "Visible"));
+    if(Visible=="hidden") await axios.get(`${server}/api/user/notifications`,{withCredentials: true}).then((res)=>{
+      setNotifiactionUser(res.data)
+      
+    }).catch((err) => {
+      console.log(err.response?.data?.message);
+    });
   };
   const [value, setValue] = useState("");
   const [SearchVisible, setSearchVisible] = useState("visible");
@@ -114,31 +157,108 @@ function HeaderBar() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, setValue]);
+
+  const [FriendRequestSent,setFriendRequestSent]=useState(false)
+
+  const FrindRequestsend=(userId:string)=>{
+    axios.put(`${server}/api/user/sendrequest`,{
+      userId
+    },{
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(()=>{
+      setFriendRequestSent(true)
+      setTimeout(()=>{
+        setFriendRequestSent(false)
+      },200)
+    }).catch(err=>{
+      alert(err.response?.data?.message);
+    });
+    
+  }
+
+
+  const handelAceptRequest = (requestId: string, accept:boolean) => {
+    
+    axios.put(`${server}/api/user/acceptrequest`, {
+      requestId,
+      accept,
+    },{
+      withCredentials: true,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(()=>{
+      axios
+        .get(`${server}/api/user/notifications`, { withCredentials: true })
+        .then((res) => {
+          setNotifiactionUser(res.data);
+          if (notificationCount)
+            if (notificationCount > 0) {
+              setNotificationCount((prev) => prev - 1);
+            }
+        })
+        .catch((err) => {
+          console.log(err.response?.data?.message);
+        });
+    }).catch((err) => {alert(err.response?.data?.message);})
+  };
+
   return (
     <div className="sticky top-0 z-10 flex h-[53px] items-center gap-1 border-b bg-background px-4">
       <Link to={"/"}>
         <h1 className="text-xl dark:text-white font-semibold">ChatApp</h1>
       </Link>
       <div className={`${Visible} absolute bg-red-200 right-20 top-14`}>
-        <div className="bg-red-400 flex justify-between items-center h-16 rounded-2xl w-full m-5 shadow-md">
-          <img
-            src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt=""
-            className="w-14 h-14 ml-2 rounded-full"
-          />
-          <div className="w-24">
-            <p className="font-bold leading-3">name</p>
-            <p>
-              <i>@user name</i>
-            </p>
-          </div>
-          <Button size={"sm"}>
-            <SquareX color="#ff0000" strokeWidth={3} />
-          </Button>
-          <Button size={"sm"} className="mr-2">
-            <BadgeCheck color="#00ff00" strokeWidth={3} />
-          </Button>
-        </div>
+        {notifiactionUser ? (
+          notifiactionUser.allRequests.length === 0 ? (
+            <div>No request Avaiable</div>
+          ) : (
+            notifiactionUser.allRequests.map(
+              (request: notificationSecond, i) => (
+                <div
+                  key={i}
+                  className="bg-red-400 flex justify-between items-center h-16 rounded-2xl w-full m-5 shadow-md"
+                >
+                  <img
+                    src={`${request.sender.avatar}`}
+                    alt=""
+                    className="w-14 h-14 ml-2 rounded-full"
+                  />
+                  <div className="w-24">
+                    <p className="font-bold leading-3">
+                      {request.sender.fname}
+                    </p>
+                    <p>
+                      <i>@{request.sender.uname}</i>
+                    </p>
+                  </div>
+                  <Button
+                    size={"sm"}
+                    onClick={() => {
+                      handelAceptRequest(request._id, false);
+                    }}
+                  >
+                    <SquareX color="#ff0000" strokeWidth={3} />
+                  </Button>
+                  <Button
+                    size={"sm"}
+                    onClick={() => {
+                      handelAceptRequest(request._id, true);
+                    }}
+                    className="mr-2"
+                  >
+                    <BadgeCheck color="#00ff00" strokeWidth={3} />
+                  </Button>
+                </div>
+              )
+            )
+          )
+        ) : (
+          <div></div>
+        )}
       </div>
       {searchLoading ? (
         <div>loading ....</div>
@@ -147,7 +267,7 @@ function HeaderBar() {
           className={`${SearchVisible} absolute bg-stone-600 dark:bg-teal-200 right-52 w-[30vw] top-14`}
         >
           {searchedUsers.length == 0 ? (
-            <div>{searchErr?searchErr:"User Not Found"}</div>
+            <div>{searchErr ? searchErr : "User Not Found"}</div>
           ) : (
             searchedUsers.map((sUser: searchUserType, i) => (
               <div
@@ -171,8 +291,19 @@ function HeaderBar() {
                     <i>@{sUser.uname ? sUser.uname : "user name"}</i>
                   </p>
                 </div>
-                <Button size={"sm"} className="mr-5">
-                  <UserPlus color="#00ff00" strokeWidth={3} />
+                <Button
+                  size={"sm"}
+                  className="mr-5"
+                  disabled={FriendRequestSent}
+                  onClick={() => {
+                    FrindRequestsend(sUser._id);
+                  }}
+                >
+                  {!FriendRequestSent ? (
+                    <UserPlus color="#00ff00" strokeWidth={3} />
+                  ) : (
+                    <CircleCheckBig />
+                  )}
                 </Button>
               </div>
             ))
@@ -221,6 +352,7 @@ function HeaderBar() {
       {userAvaiable ? (
         <Button className="mr-5 text-sm" onClick={VisibleHandeler}>
           {Visible === "hidden" ? <Bell /> : <BellOff />}
+          <p className="text-xl font-bold ml-1">{notificationCount}</p>
         </Button>
       ) : (
         <div></div>
