@@ -1,4 +1,12 @@
-import { BadgeCheck, Bell, BellOff, Moon, SquareX, SunMoon, UserPlus } from "lucide-react";
+import {
+  BadgeCheck,
+  Bell,
+  BellOff,
+  Moon,
+  SquareX,
+  SunMoon,
+  UserPlus,
+} from "lucide-react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -7,6 +15,8 @@ import { darkMode, lightMode } from "../../../Store/ThemeSlice";
 import { RootState } from "@/Store/Store";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { server } from "@/constant/config";
 
 interface Avatar {
   public_id: string;
@@ -23,6 +33,12 @@ interface UserInterface {
   updatedAt: string;
   __v: number;
 }
+interface searchUserType {
+  _id: string;
+  avatar: string;
+  fname: string;
+  uname: string;
+}
 function HeaderBar() {
   const userAvaiable = useSelector(
     (state: RootState) => state.auth.userData
@@ -30,12 +46,13 @@ function HeaderBar() {
   const [mode, setMode] = useState("Light");
   const dispatch = useDispatch();
   const thememd = useSelector((state: RootState) => state.theme);
+  const [searchLoading,setSearchLoading]=useState(false);
   useEffect(() => {
     const rootElement = document.querySelector("#root");
     if (rootElement !== null) {
-    rootElement.className = thememd.theme;
+      rootElement.className = thememd.theme;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
   const ThemeSwitch = () => {
     if (mode == "Light") {
@@ -46,22 +63,57 @@ function HeaderBar() {
       dispatch(darkMode());
     }
   };
-  const [Visible, setVisible]=useState("hidden");
-  const VisibleHandeler=()=>{
-    setVisible((prev)=> prev === "Visible"? "hidden" : "Visible");
-  }
-  const [value,setValue]=useState("");
-  const [SearchVisible, setSearchVisible]=useState("visible");
-  const changeSearch=(e: ChangeEvent<HTMLInputElement>)=>{
-    setValue(e.target.value);
-  }
-  useEffect(()=>{
-    if(value.length>0){
+  const [Visible, setVisible] = useState("hidden");
+  const VisibleHandeler = () => {
+    setVisible((prev) => (prev === "Visible" ? "hidden" : "Visible"));
+  };
+  const [value, setValue] = useState("");
+  const [SearchVisible, setSearchVisible] = useState("visible");
+  const [searchedUsers,setSearchedUsers] = useState([])
+  const [typing,setTyping] = useState(false)
+  const [searchErr,setSearchErr]=useState(undefined)
+  const changeSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    setValue(String(e.target.value));
+    setTyping(true)
+  };
+  useEffect(() => {
+    if (value.length > 0) {
       setSearchVisible("visible");
-    }else{
+    } else {
       setSearchVisible("hidden");
     }
-  },[value,setValue])
+
+    const fetchData = async () => {
+      setSearchErr(undefined)
+      setSearchLoading(true)
+        const params={
+          name:value
+        }
+         await axios.get(`${server}/api/user/search`,{
+          withCredentials: true,
+          params
+         }).then((res)=>{
+          setSearchLoading(false)
+          setSearchedUsers(res.data.users);
+         }).catch((err)=>{
+          
+            setSearchErr(err.response?.data?.message);
+            alert(err.response?.data?.message);
+            
+         })
+      
+    }
+     if (typing) {
+       const typingTimeout = setTimeout(() => {
+         fetchData();
+         setTyping(false);
+       }, 1000);
+
+       return () => clearTimeout(typingTimeout);
+     }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, setValue]);
   return (
     <div className="sticky top-0 z-10 flex h-[53px] items-center gap-1 border-b bg-background px-4">
       <Link to={"/"}>
@@ -88,26 +140,45 @@ function HeaderBar() {
           </Button>
         </div>
       </div>
-      <div
-        className={`${SearchVisible} absolute bg-stone-600 dark:bg-teal-200 right-52 w-[30vw] top-14`}
-      >
-        <div className="bg-red-400 flex justify-between items-center h-16 rounded-2xl w-full m-5 shadow-md">
-          <img
-            src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt=""
-            className="w-14 h-14 ml-5 rounded-full"
-          />
-          <div className="w-72 flex flex-col items-center">
-            <p className="font-bold leading-3">name</p>
-            <p>
-              <i>@user name</i>
-            </p>
-          </div>
-          <Button size={"sm"} className="mr-5">
-            <UserPlus color="#00ff00" strokeWidth={3} />
-          </Button>
+      {searchLoading ? (
+        <div>loading ....</div>
+      ) : (
+        <div
+          className={`${SearchVisible} absolute bg-stone-600 dark:bg-teal-200 right-52 w-[30vw] top-14`}
+        >
+          {searchedUsers.length == 0 ? (
+            <div>{searchErr?searchErr:"User Not Found"}</div>
+          ) : (
+            searchedUsers.map((sUser: searchUserType, i) => (
+              <div
+                key={i}
+                className="bg-red-400 flex justify-between items-center h-16 rounded-2xl w-full m-5 shadow-md"
+              >
+                <img
+                  src={
+                    sUser.avatar
+                      ? `${sUser.avatar}`
+                      : "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                  }
+                  alt=""
+                  className="w-14 h-14 ml-5 rounded-full"
+                />
+                <div className="w-72 flex flex-col items-center">
+                  <p className="font-bold leading-3">
+                    {sUser.fname ? sUser.fname : "name"}
+                  </p>
+                  <p>
+                    <i>@{sUser.uname ? sUser.uname : "user name"}</i>
+                  </p>
+                </div>
+                <Button size={"sm"} className="mr-5">
+                  <UserPlus color="#00ff00" strokeWidth={3} />
+                </Button>
+              </div>
+            ))
+          )}
         </div>
-      </div>
+      )}
       {userAvaiable ? (
         <form className={`ml-auto mr-5 gap-1.5 max-w-md mx-auto`}>
           <div className="flex">
@@ -147,9 +218,13 @@ function HeaderBar() {
       ) : (
         <div className="ml-auto mr-5 gap-1.5 max-w-md mx-auto"></div>
       )}
-      {userAvaiable ?<Button className="mr-5 text-sm" onClick={VisibleHandeler}>
-        {Visible === "hidden" ? <Bell /> : <BellOff />}
-      </Button>: <div></div>}
+      {userAvaiable ? (
+        <Button className="mr-5 text-sm" onClick={VisibleHandeler}>
+          {Visible === "hidden" ? <Bell /> : <BellOff />}
+        </Button>
+      ) : (
+        <div></div>
+      )}
 
       <Button
         // variant="outline"

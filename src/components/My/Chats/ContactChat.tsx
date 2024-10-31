@@ -1,4 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { server } from "@/constant/config";
+// import { RootState } from "@/Store/Store";
+import axios from "axios";
+import { useEffect, useState } from "react";
+// import { useSelector } from "react-redux";
 // import { server } from "@/constant/config";
 // import { RootState } from "@/Store/Store";
 // import axios from "axios";
@@ -6,6 +11,21 @@ import { Button } from "@/components/ui/button";
 // import { useSelector } from "react-redux";
 import {  NavLink } from "react-router-dom";
 
+// interface Avatar {
+//   public_id: string;
+//   public_url: string;
+// }
+
+// interface UserInterface {
+//   avatar: Avatar;
+//   _id: string;
+//   fname: string;
+//   uname: string;
+//   email: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   __v: number;
+// }
 function ContactChat({ className = "visible", isGrp = false }) {
   // let arr=[];
   // for (let i=0; i<50; i++) {
@@ -36,8 +56,23 @@ function ContactChat({ className = "visible", isGrp = false }) {
 //       });
 //   },
 // );
-
-  const id = 1;
+  const [loading,setLoading]=useState(false)
+  // const UserDetails = useSelector(
+  //   (state: RootState) => state.auth.userData
+  // ) as UserInterface | null;
+  const [myChats,setMyChats]=useState([])
+  useEffect(()=>{
+    setLoading(true)
+    axios
+      .get(`${server}/api/chat/mychat`, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        setLoading(false)
+        setMyChats(res.data.chats);
+      });
+  },[])
+  // const id = 1;
   return (
     <div
       className={`relative ${className} flex-col items-start gap-8 md:flex `}
@@ -47,20 +82,29 @@ function ContactChat({ className = "visible", isGrp = false }) {
         <fieldset className="grid gap-6 max-h-[88vh] min-h-[88%] rounded-lg border p-4 overflow-hidden overflow-y-scroll">
           <legend className="-ml-1 px-1 text-sm font-medium">Messages</legend>
           <div id="contactChat" className="overflow-y-scroll min-h-[100%]">
-            <NavLink to={isGrp ? `/groups/${id}` : `/chat/${id}`}>
-              <div className="flex items-center mb-2 gap-4 rounded-xl border h-16">
-                <img
-                  className="w-12 ml-2 h-12 bg-auto inline-block rounded-full "
-                  src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                  alt=""
-                />
-                <h1>Name</h1>
-              </div>
-            </NavLink>
-            
+            {loading ? (
+              <div>Loading ...</div>
+            ) : (
+              myChats.map((mChat,i) => (
+                <NavLink key={i} to={isGrp ? `/groups/${mChat._id}` : `/chat/${mChat._id}`}>
+                  <div className="flex items-center mb-2 gap-4 rounded-xl border h-16">
+                    <img
+                      className="w-12 ml-2 h-12 bg-auto inline-block rounded-full "
+                      src={
+                        mChat
+                          ? `${mChat.avatar}`
+                          : "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                      }
+                      alt=""
+                    />
+                    <h1>{mChat ? mChat.fname : "Name"}</h1>
+                  </div>
+                </NavLink>
+              ))
+            )}
           </div>
         </fieldset>
-        <Button  className="absolute h-12 left-64 md:left-[25rem] bottom-28">
+        <Button className="absolute h-12 left-64 md:left-[25rem] bottom-28">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"

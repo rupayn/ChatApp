@@ -56,6 +56,7 @@ function Account() {
     e.preventDefault(); 
     if(disable==false){  
       setLoading(true)
+      console.log(email,password,fname)
       axios
         .put(
           `${server}/api/user/renameuser`,
