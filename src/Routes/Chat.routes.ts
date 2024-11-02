@@ -36,7 +36,7 @@ router.get("/getmessages/:id",chatIdValidator(),validateHandler, getMessages);
 
 router
   .route("/:id")
-  .get(chatIdValidator(), validateHandler, getMessages)
+  .get(chatIdValidator(), validateHandler, getChatDetails)
   .put(renameValidator(), validateHandler, renameGroup)
   .delete(chatIdValidator(), validateHandler, deleteGroup);
 

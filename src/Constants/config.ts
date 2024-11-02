@@ -4,4 +4,4 @@ export const corsOptions = {
   credentials: true,
 };
 
-export const CHAT_TOKEN = "chat-token";
+export const CHAT_TOKEN = "ChatApp";

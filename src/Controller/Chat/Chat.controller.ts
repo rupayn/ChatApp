@@ -41,20 +41,20 @@ export const newGroupChat = TryCatch(
 export const myChats = TryCatch(
   async (req: Request, res: Response, next: NextFunction) => {
     const chat = await Chat.find({
-      members: req.user,
-      groupChat: false,
+      members: req.user
     }).populate("members", "fname avatar");
     //   emitEvent(req, REFETCH_CHAT, members);
     const gethOtherMembers = (members: any, uid: any) =>
       members.find((member: any) => member._id.toString() !== uid.toString());
 
     const transformedChats = chat.map(({ _id, fname, groupChat, members }) => {
-      const otherMember = gethOtherMembers(members, _id);
+      const otherMember = gethOtherMembers(members, req.user);
 
       return {
         _id,
         groupChat,
-        fname: groupChat ? fname : otherMember.fname,
+
+        fname: groupChat? fname :  otherMember.fname,
         avatar: groupChat
           ? members
               .slice(0, 3)
@@ -65,15 +65,18 @@ export const myChats = TryCatch(
           : [otherMember.avatar.public_url],
         members: members.reduce((prev: any, curr: any) => {
           const u = req.user;
-          if (curr._id.toString() !== u?.toString()) {
-            prev.push(curr._id);
+          if(u){
+            if (curr._id.toString() !== u?.toString()) {
+              prev.push(curr._id);
+            }
+            return prev;
           }
-          return prev;
+          
         }, []),
         creator: req.user,
       };
     });
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       chats: transformedChats,
       message: "Group Created",

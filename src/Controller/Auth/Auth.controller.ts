@@ -253,9 +253,10 @@ export const renameUser=TryCatch(async(req,res,next)=>{
   if(!usr) return next(new ErrorHandler("Can't get user id",404))
   const UserD=await User.findById(usr).select("+password")
   if(!UserD) return next(new ErrorHandler("User not found",404))
-  const {fname,email,password}=req.body
+  const {fname,email,uname,password}=req.body
   if ((fname !== UserD.fname)&&fname) UserD.fname = fname;
-  if ((fname !== UserD.email)&&email) UserD.email = email;
+  if ((email !== UserD.email)&&email) UserD.email = email;
+  if ((uname !== UserD.uname)&&uname) UserD.uname = uname;
   
   if(req.file){
     
@@ -274,6 +275,7 @@ export const renameUser=TryCatch(async(req,res,next)=>{
   await UserD.save()
   return res.json({
     success:true,
+    msg:'saved'
     
   })
 })

@@ -1,24 +1,39 @@
 import userRoute from "./src/Routes/User.routes.ts";
 import chatRoute from "./src/Routes/Chat.routes.ts";
-import express from "express";
+import express, { NextFunction } from "express";
 import { connectDb } from "./src/utils/ConnectDb.ts";
 import dotenv from "dotenv";
 import { errorMiddleware, TryCatch } from "./src/middleware/error.middle.ts";
 import cookieParser from "cookie-parser";
-import {Server} from "socket.io";
+import {Server, Socket} from "socket.io";
+import jwt from "jsonwebtoken";
 import cors from "cors"
 import {v2 as cloudinary} from "cloudinary"
 import { createServer } from "http";
 import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, ONLINE_USERS, START_TYPING, STOP_TYPING } from "./src/Constants/event.ts";
 import { v4 as uuid } from "uuid";
-import { corsOptions } from "./src/Constants/config.ts";
-import { getSockets } from "./src/utils/Features.ts";
+import { CHAT_TOKEN, corsOptions } from "./src/Constants/config.ts";
+import { ErrorHandler, getSockets } from "./src/utils/Features.ts";
 import { socketAuthenticator } from "./src/middleware/auth.middle.ts";
 import { Message } from "./src/Models/Message.model.ts";
+import { User } from "./src/Models/Users.model.ts";
+import mongoose, { Date } from "mongoose";
 // import { createUser } from "./src/Seeders/user.ts";
 // import { createGroupChats, createMessages, createMessagesInAChat, createSingleChats } from "./src/Seeders/Chat.ts";
 
-
+interface SUser {
+  avatar: {
+    public_id: string,
+    public_url: string
+  },
+  _id: mongoose.Types.ObjectId,
+  fname: string,
+  uname: string,
+  email: string,
+  createdAt: Date,
+  updatedAt: Date,
+  __v: number
+}
 
 const userSocketIDs=new Map()
 const onlineUsers=new Set();
@@ -28,10 +43,13 @@ dotenv.config({
 });
 const app = express();
 app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS,
-    credentials:true
-  })
+  cors(
+    //   {
+    //   origin: process.env.ALLOWED_ORIGINS,
+    //   credentials:true
+    // }
+    corsOptions
+  )
 );
 const httpServer=createServer(app)
 const io = new Server(httpServer, {
@@ -57,30 +75,28 @@ app.get("/", (req, res) => {
 });
 
 io.use((socket, next) => {
-  // cookieParser()(
-  //   socket.request,
-  //   socket.request.res,
-  //   async (err) => await socketAuthenticator(err, socket, next)
-  // );
+  // const req=socket.request as any
+  cookieParser()(
+    socket.request as any,
+    {} as any,
+    async (err) => await socketAuthenticator(err, socket, next)
+  );
 });
 
 io.on("connection", (socket) => {
-  console.log(`Connection established and ${socket.id} connected`);
   
-  // const user = socket?.user;
-  const user={
-    _id:"swder",
-    name: "Swder",
-  }
-  userSocketIDs.set(user._id.toString(), socket.id);
+  const user = (socket as any).user;
+  
+  if (user && user._id) userSocketIDs.set(user?._id?.toString(), socket.id);
+  console.log("From index ",userSocketIDs);
 
   socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
     const messageForRealTime = {
       content: message,
       _id: uuid(),
       sender: {
-        _id: user._id,
-        name: user.name,
+        _id: user?._id,
+        fname: user?.fname,
       },
       chat: chatId,
       createdAt: new Date().toISOString(),
@@ -88,10 +104,10 @@ io.on("connection", (socket) => {
 
     const messageForDB = {
       content: message,
-      sender: user._id,
+      sender: user?._id,
       chat: chatId,
     };
-
+    console.log("Emiting",messageForRealTime,"\n","lol",'\n',members,'\n')
     const membersSocket = getSockets(members);
     io.to(membersSocket).emit(NEW_MESSAGE, {
       chatId,
@@ -128,8 +144,8 @@ io.on("connection", (socket) => {
      io.to(membersSocket).emit(ONLINE_USERS, Array.from(onlineUsers));
    });
   socket.on("disconnect", () =>{
-    userSocketIDs.delete(user._id.toString());
-    onlineUsers.delete(user._id.toString());
+    userSocketIDs.delete(user?._id?.toString());
+    onlineUsers.delete(user?._id?.toString());
     socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
   })
 })
