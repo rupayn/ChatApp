@@ -3,21 +3,83 @@ import { Forward, Paperclip } from "lucide-react";
 import { Button } from "../../ui/button";
 import { Label } from "../../ui/label";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../../ui/tooltip";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { useSocket } from "@/socket";
+import { useLocation } from "react-router-dom";
+import { NEW_MESSAGE } from "@/constant/event";
+import axios from "axios";
+import { server } from "@/constant/config";
 
 function ChatWrite({isGrp=false}) {
+  const location = useLocation();
+  const data = location.state;
+  console.log(data);
+  const socket=useSocket()
+  const [msg,setMsg]=useState("")
+  const [visible, setVisible] = useState(true);
+  const [file, setFile] = useState("");
+  const [mFile, setMFile] = useState()
+  const [members, setMembers] = useState([])
+  const [msgs, setMsgs] = useState([])
   const sendMsg = (e: any) => {
     e.preventDefault();
-    console.log(file)
+    if(!msg.trim()) return;
+    const chatId=data._id
+    
+    socket.emit(NEW_MESSAGE, { chatId, members, message: msg });
+    setMsg("")
     setFile("");
+    setMFile(undefined);
   };
-  const [visible,setVisible]=useState(true)
-  const [file, setFile] = useState("");
 
+  useEffect(() => {
+    // const rParams={
+    //   chatId:data._id
+    // }
+    const chatId = data._id;
+    // console.log('chatid ',chatId);
+    const chatParams = {
+      populate: true,
+    };
+    axios
+      .get(`${server}/api/chat/${chatId}`, {
+        withCredentials: true,
+        params: chatParams,
+      })
+      .then((res) => {
+        setMembers(res.data.chat.members);
+        // console.log("members: 🙂")
+        // console.log(res.data.chat.members)
+        // setMsg(res.data.messages)
+      });
+
+     
+
+  }, [data._id]);
+  const nMesgs=useCallback((data:any)=>{
+    console.log("na re")
+    console.log(data)
+    
+  },[])
+  useEffect(() => {
+    
+    if (chatContainerRef.current) {
+      (chatContainerRef.current as HTMLElement).scrollTop = (
+        chatContainerRef.current as HTMLElement
+      ).scrollHeight;
+    }
+    socket.on(NEW_MESSAGE, nMesgs);
+    
+    return () => {
+      socket.off(NEW_MESSAGE, nMesgs);
+    };
+    
+  });
   const visibleFile=()=>{
     setVisible((prev)=>!prev)
   }
+
   // const arr=[];
   // for (let i = 0; i <20; i++) {
   //   arr.push(
@@ -37,6 +99,7 @@ const chatContainerRef = useRef(null);
 
 const handleChange=(e:any) =>{
   setFile(URL.createObjectURL(e.target.files[0]));
+  setMFile(e.target.files[0]);
   setVisible((prev) => !prev);
 }
 const cut = () => {
@@ -44,11 +107,9 @@ const cut = () => {
   
 };
 
-useEffect(() => {
-  if (chatContainerRef.current) {
-    (chatContainerRef.current as HTMLElement).scrollTop = (chatContainerRef.current as HTMLElement).scrollHeight;
-}
-}, []);
+// useEffect(() => {
+  
+// }, []);
   return (
     <div className="relative flex h-[90vh] md:h-[88%] flex-col rounded-xl bg-muted/50 border-transparent border-4  ring-offset-8 p-4 lg:col-span-2">
       {/* <Badge  className="absolute left-3 top-3">
@@ -57,10 +118,10 @@ useEffect(() => {
       <div className="bg-slate-700  text-white dark:text-black dark:bg-slate-300 h-14 flex items-center  rounded-3xl">
         <img
           className="w-12 h-12 bg-auto ml-4 inline-block rounded-full "
-          src="https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=2683&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={`${data.avatar}`}
           alt="img"
         />
-        <h1 className="inline-block pl-4 font-bold">Name</h1>
+        <h1 className="inline-block pl-4 font-bold">{data.fname}</h1>
       </div>
       <div ref={chatContainerRef} className="mt-8 max-h-96 overflow-scroll">
         <div className="max-w-72 mb-4 relative  text-wrap py-2 px-2 bg-red-100 rounded-xl ">
@@ -265,6 +326,8 @@ useEffect(() => {
           type="text"
           id="message"
           placeholder="Type your message here..."
+          value={msg}
+          onChange={(e)=>setMsg(e.target.value)}
           className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0 dark:text-white"
         />
 

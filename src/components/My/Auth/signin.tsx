@@ -27,7 +27,6 @@ export default function Signin() {
       .post(`${server}/api/auth/signin`, { email, password },{withCredentials: true,headers: { 'Content-Type': 'application/json'}})
       .then((res) => {
         // Handle successful login
-        console.log(res.data);
         
         dispatch(login(res.data))
         // console.log(response);

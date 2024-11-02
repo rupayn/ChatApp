@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { server } from "@/constant/config";
+import { useSocket } from "../../../socket";
 // import { RootState } from "@/Store/Store";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -16,16 +17,18 @@ import {  NavLink } from "react-router-dom";
 //   public_url: string;
 // }
 
-// interface UserInterface {
-//   avatar: Avatar;
-//   _id: string;
-//   fname: string;
-//   uname: string;
-//   email: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   __v: number;
-// }
+interface UserInterface {
+  _id: string;
+  groupChat:boolean;
+  fname: string;
+  avatar: [string];
+  members:[string],
+  creator: string;
+  
+}
+
+
+
 function ContactChat({ className = "visible", isGrp = false }) {
   // let arr=[];
   // for (let i=0; i<50; i++) {
@@ -60,7 +63,11 @@ function ContactChat({ className = "visible", isGrp = false }) {
   // const UserDetails = useSelector(
   //   (state: RootState) => state.auth.userData
   // ) as UserInterface | null;
+
+  const soket = useSocket();
+  if(soket)console.log("socket: ", soket.id);
   const [myChats,setMyChats]=useState([])
+  const [SepmyChats,setSepMyChats]=useState<UserInterface[]>([])
   useEffect(()=>{
     setLoading(true)
     axios
@@ -72,6 +79,14 @@ function ContactChat({ className = "visible", isGrp = false }) {
         setMyChats(res.data.chats);
       });
   },[])
+  useEffect(()=>{
+    let b:UserInterface[]=[]
+    myChats.forEach((e:UserInterface)=>{
+      if(e.groupChat==false)  b.push(e);
+    })
+    b=b.sort()
+    setSepMyChats(b);
+  },[myChats])
   // const id = 1;
   return (
     <div
@@ -85,8 +100,12 @@ function ContactChat({ className = "visible", isGrp = false }) {
             {loading ? (
               <div>Loading ...</div>
             ) : (
-              myChats.map((mChat,i) => (
-                <NavLink key={i} to={isGrp ? `/groups/${mChat._id}` : `/chat/${mChat._id}`}>
+              SepmyChats.map((mChat: UserInterface, i) => (
+                <NavLink
+                  key={i}
+                  state={mChat}
+                  to={isGrp ? `/groups/${mChat._id}` : `/chat/${mChat._id}`}
+                >
                   <div className="flex items-center mb-2 gap-4 rounded-xl border h-16">
                     <img
                       className="w-12 ml-2 h-12 bg-auto inline-block rounded-full "

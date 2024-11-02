@@ -9,6 +9,7 @@ import {store} from './Store/Store.ts'
 import AuthLayout from "./components/My/ProtectRoute/AuthLayout.tsx"
 import {Account, Chat, GroupChat, Signin,Signup,ContactChat,GroupContactChat} from "./components/My/index.ts"
 import { TooltipProvider } from '@radix-ui/react-tooltip'
+import { SocketProvider } from './socket.tsx'
 
 
 const router = createBrowserRouter(
@@ -51,42 +52,50 @@ const router = createBrowserRouter(
         },
         {
           path: "account",
-          element:(
-             <AuthLayout authentication>
-               <Account />
-             </AuthLayout> 
-        ),
+          element: (
+            <AuthLayout authentication>
+              <Account />
+            </AuthLayout>
+          ),
         },
         {
           path: "chat",
           element: (
-           <AuthLayout authentication>    
-             <ContactChat />
-           </AuthLayout>
-        ),
+            <SocketProvider>
+              <AuthLayout authentication>
+                <ContactChat />
+              </AuthLayout>
+            </SocketProvider>
+          ),
         },
         {
           path: "groups",
-          element:(
-             <AuthLayout authentication>
-               <GroupContactChat />
-             </AuthLayout> 
-        ),
+          element: (
+            <SocketProvider>
+              <AuthLayout authentication>
+                <GroupContactChat />
+              </AuthLayout>
+            </SocketProvider>
+          ),
         },
         {
           path: "chat/:contact",
           element: (
-             <AuthLayout authentication>
-               <Chat />
-             </AuthLayout>
-        ),
+            <SocketProvider>
+              <AuthLayout authentication>
+                <Chat />
+              </AuthLayout>
+            </SocketProvider>
+          ),
         },
         {
           path: "groups/:cont",
-          element:( 
-             <AuthLayout authentication>
-               <GroupChat />
-             </AuthLayout>
+          element: (
+            <SocketProvider>
+              <AuthLayout authentication>
+                <GroupChat />
+              </AuthLayout>
+            </SocketProvider>
           ),
         },
       ],

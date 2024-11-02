@@ -40,11 +40,15 @@ function Account() {
    const [password, setPassword] = useState("");
   const [file, setFile] = useState(lnk);
   const[newFile,setNewFile]=useState(undefined);
-  const [fname, setName] = useState(`${UserDetails?UserDetails.fname:"Name" }`);
+  const [fname, setName] = useState(`${UserDetails?UserDetails.fname:"" }`);
+  const [uname, setUname] = useState(
+    `${UserDetails?UserDetails.uname:""}`
+  );
   const [email, setMail] = useState(
-    `${UserDetails?UserDetails.email:"email@gamil.com"}`
+    `${UserDetails?UserDetails.email:""}`
   );
   const [errorSave,setErrSave]=useState("")
+  const [successMsg,setSuccessMsg]=useState("")
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleChange(e: any) {
     setFile(URL.createObjectURL(e.target.files[0]));    
@@ -59,25 +63,25 @@ function Account() {
       console.log(email,password,fname)
       axios.put(
           `${server}/api/user/renameuser`,
-          { fname, email, password, avatar: newFile },
+          { fname, email,uname ,password, avatar: newFile },
           {
             withCredentials: true,
             headers: { "Content-Type": "multipart/form-data" },
           }
         )
-        .then(() => {
+        .then((res) => {
           setLoading(false)
+          setSuccessMsg(res.data.msg)
           setSuccessAlert(true);
           setTimeout(() => {
             setSuccessAlert(false);
-          }, 2000);
+          }, 3000);
         })
         .catch((er) => {
           setLoading(false);
           setFailedAlert(true);
-          console.log(er.Resonse);
-
-          setErrSave(er.message);
+          console.log(er)
+          setErrSave(er.response.data.message);
           setTimeout(() => {
             setFailedAlert(false);
           }, 2000);
@@ -114,7 +118,7 @@ function Account() {
           }}
         >
           <Alert className="w-44  relative md:-right-[40%]">
-            <AlertTitle className="inline-block mr-2">Saved </AlertTitle>✅
+            <AlertTitle className="inline-block mr-2">{successMsg} </AlertTitle>✅
           </Alert>
         </motion.div>
       ) : (
@@ -174,14 +178,21 @@ function Account() {
             type="text"
             disabled={disable}
             className="text-center block bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={fname}
+            value={`${fname}`}
             onChange={(e) => setName(e.target.value)}
           />
           <Input
             type="text"
             disabled={disable}
+            className="text-center bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
+            value={`${uname}`}
+            onChange={(e) => setUname(e.target.value)}
+          />
+          <Input
+            type="text"
+            disabled={disable}
             className="text-center mb-4  bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={email}
+            value={`${email}`}
             onChange={(e) => setMail(e.target.value)}
           />
           <label htmlFor="pass" className={disable ? "hidden" : ""}>
@@ -204,7 +215,13 @@ function Account() {
         >
           Log Out
         </Button>
-        {loading?<div className="text-center mt-5 font-serif font-extrabold text-3xl">Updating your data ...</div>:<div></div>}
+        {loading ? (
+          <div className="text-center mt-5 font-serif font-extrabold text-3xl">
+            Updating your data ...
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
     </div>
   );
