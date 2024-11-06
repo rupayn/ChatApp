@@ -54,15 +54,12 @@ export const myChats = TryCatch(
         _id,
         groupChat,
 
-        fname: groupChat? fname :  otherMember.fname,
-        avatar: groupChat
-          ? members
-              .slice(0, 3)
-              .map(
+        fname: groupChat? fname :  otherMember?.fname,
+        avatar: groupChat? members.slice(0, 3).map(
                 (member: { avatar: { public_url: string } }) =>
                   member.avatar.public_url
               )
-          : [otherMember.avatar.public_url],
+          : [otherMember?.avatar.public_url],
         members: members.reduce((prev: any, curr: any) => {
           const u = req.user;
           if(u){
@@ -393,7 +390,7 @@ export const getMessages = TryCatch(async (req, res, next) => {
   const pg=String(req.query)
   const page  = parseInt(pg || '1',10);
   
-
+  console.log(chatId)
   const resultPerPage = 20;
   const skip = (page - 1) * resultPerPage;
 
@@ -417,7 +414,6 @@ export const getMessages = TryCatch(async (req, res, next) => {
   ]);
 // console.log(totalMessagesCount);
   const totalPages = Math.ceil(totalMessagesCount / resultPerPage) || 0;
-
   res.status(200).json({
     success: true,
     messages: messages.reverse(),

@@ -97,6 +97,7 @@ io.on("connection", (socket) => {
       sender: {
         _id: user?._id,
         fname: user?.fname,
+        uname:user?.uname
       },
       chat: chatId,
       createdAt: new Date().toISOString(),
