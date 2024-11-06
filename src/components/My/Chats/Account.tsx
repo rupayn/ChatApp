@@ -118,7 +118,8 @@ function Account() {
           }}
         >
           <Alert className="w-44  relative md:-right-[40%]">
-            <AlertTitle className="inline-block mr-2">{successMsg} </AlertTitle>✅
+            <AlertTitle className="inline-block mr-2">{successMsg} </AlertTitle>
+            ✅
           </Alert>
         </motion.div>
       ) : (
@@ -174,27 +175,42 @@ function Account() {
           >
             {disable ? <Pencil /> : <Save />}
           </Button>
-          <Input
-            type="text"
-            disabled={disable}
-            className="text-center block bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={`${fname}`}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <Input
-            type="text"
-            disabled={disable}
-            className="text-center bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={`${uname}`}
-            onChange={(e) => setUname(e.target.value)}
-          />
-          <Input
-            type="text"
-            disabled={disable}
-            className="text-center mb-4  bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
-            value={`${email}`}
-            onChange={(e) => setMail(e.target.value)}
-          />
+          <div className="flex border-b-2">
+            <Label className="w-2/6 text-center h-auto font-extrabold text-md">
+              Full Name:
+            </Label>
+            <Input
+              type="text"
+              disabled={disable}
+              className="text-center block bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
+              value={`${fname}`}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+          <div className="flex border-b-2">
+            <Label className="w-2/6 text-center h-auto font-extrabold text-md">
+              User Name:
+            </Label>
+            <Input
+              type="text"
+              disabled={disable}
+              className="text-center bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
+              value={`${uname}`}
+              onChange={(e) => setUname(e.target.value)}
+            />
+          </div>
+          <div className="flex border-b-2">
+            <Label className="w-2/6 text-center h-auto font-extrabold text-md">
+              User Email:
+            </Label>
+            <Input
+              type="text"
+              disabled={disable}
+              className="text-center bg-transparent border-none text-2xl disabled:cursor-default disabled:opacity-100"
+              value={`${email}`}
+              onChange={(e) => setMail(e.target.value)}
+            />
+          </div>
           <label htmlFor="pass" className={disable ? "hidden" : ""}>
             Change Password
           </label>
@@ -208,7 +224,7 @@ function Account() {
           />
         </form>
         <Button
-          className={disable ? "hover:bg-red-600" : "hidden"}
+          className={`mt-4 ${disable ? "hover:bg-red-600" : "hidden"}`}
           variant={"destructive"}
           onClick={logoutHandler}
           disabled={loading}

@@ -10,11 +10,33 @@ import { useLocation } from "react-router-dom";
 import { NEW_MESSAGE } from "@/constant/event";
 import axios from "axios";
 import { server } from "@/constant/config";
+import { RootState } from "@/Store/Store";
+import { useSelector } from "react-redux";
+
+
+interface Avatar {
+  public_id: string;
+  public_url: string;
+}
+
+interface UserInterface {
+  avatar: Avatar;
+  _id: string;
+  fname: string;
+  uname: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
 
 function ChatWrite({isGrp=false}) {
+    const UserDetails = useSelector(
+      (state: RootState) => state.auth.userData
+    ) as UserInterface | null;
   const location = useLocation();
   const data = location.state;
-  console.log(data);
+  console.log(UserDetails);
   const socket=useSocket()
   const [msg,setMsg]=useState("")
   const [visible, setVisible] = useState(true);
@@ -54,16 +76,40 @@ function ChatWrite({isGrp=false}) {
         // setMsg(res.data.messages)
       });
 
-     
-
   }, [data._id]);
-  const nMesgs=useCallback((data:any)=>{
-    console.log("na re")
-    console.log(data)
-    
-  },[])
+  const nMesgs = useCallback((data: any) => {
+    console.log("na re");
+    console.log(data);
+    if(data.message.sender.fname){
+      setMsgs((prevMsgs) => [...prevMsgs, data.message]);
+    }
+  }, []);
+  useEffect(()=>{
+      const chatId = data._id;
+      axios
+        .get(`${server}/api/chat/getmessages/${chatId}`, {
+          withCredentials: true,
+        })
+        .then((res) => {
+          if (data.groupChat==false) {
+            const a=res.data.messages
+            const b=[];
+            
+            a.forEach((e)=>{
+              // console.log(e)
+              if (e.sender.fname == data.fname || UserDetails?.fname==e.sender.fname) {
+                b.push(e);
+              }
+            })
+            setMsgs(b)
+          };
+          console.log(msgs);
+        });
+
+  },[location])
+  
   useEffect(() => {
-    
+     
     if (chatContainerRef.current) {
       (chatContainerRef.current as HTMLElement).scrollTop = (
         chatContainerRef.current as HTMLElement
@@ -124,13 +170,36 @@ const cut = () => {
         <h1 className="inline-block pl-4 font-bold">{data.fname}</h1>
       </div>
       <div ref={chatContainerRef} className="mt-8 max-h-96 overflow-scroll">
-        <div className="max-w-72 mb-4 relative  text-wrap py-2 px-2 bg-red-100 rounded-xl ">
+        {msgs.map((m) =>
+          m.sender.fname == data.fname ? (
+            <div className="max-w-72 mb-4 relative  text-wrap py-2 px-2 bg-red-100 rounded-xl ">
+              {isGrp === true ? (
+                <h1 className="text-violet-900">Name</h1>
+              ) : (
+                <div></div>
+              )}
+              {/* <h1 className="text-violet-900">{m.sender.fname}</h1> */}
+              {m.content}
+            </div>
+          ) : (
+            <div className="max-w-72 mb-4 relative -right-2/3 text-wrap py-2 px-2 bg-green-200 rounded-xl ">
+              {isGrp === true ? (
+                <h1 className="text-violet-900">Name</h1>
+              ) : (
+                <div></div>
+              )}
+              {m.content}
+            </div>
+          )
+        )}
+
+        {/* <div className="max-w-72 mb-4 relative  text-wrap py-2 px-2 bg-red-100 rounded-xl ">
           {isGrp === true ? (
             <h1 className="text-violet-900">Name</h1>
           ) : (
             <div></div>
           )}
-          Lorem ipsum dolor $ sit
+          Lorem ipsum dolor sit
         </div>
         <div className="max-w-72 mb-4 relative -right-2/3 text-wrap py-2 px-2 bg-green-200 rounded-xl ">
           {isGrp === true ? (
@@ -139,27 +208,16 @@ const cut = () => {
             <div></div>
           )}
           Lorem ipsum dolor sit
-        </div>
-        <div className="max-w-72 mb-4 relative  text-wrap py-2 px-2 bg-red-100 rounded-xl ">
-          {isGrp === true ? (
-            <h1 className="text-violet-900">Name</h1>
-          ) : (
-            <div></div>
-          )}
-          Lorem ipsum dolor sit
-        </div>
-        <div className="max-w-72 mb-4 relative -right-2/3 text-wrap py-2 px-2 bg-green-200 rounded-xl ">
-          {isGrp === true ? (
-            <h1 className="text-violet-900">Name</h1>
-          ) : (
-            <div></div>
-          )}
-          Lorem ipsum dolor sit
-        </div>
+        </div> */}
         {/* {arr} */}
       </div>
       <div className="flex-1" />
-      <img src={file} alt="" className="w-24 md:w-72 lg:absolute lg:left-64 top-20" onClick={cut} />
+      <img
+        src={file}
+        alt=""
+        className="w-24 md:w-72 lg:absolute lg:left-64 top-20"
+        onClick={cut}
+      />
       <div
         className={
           visible
@@ -327,7 +385,7 @@ const cut = () => {
           id="message"
           placeholder="Type your message here..."
           value={msg}
-          onChange={(e)=>setMsg(e.target.value)}
+          onChange={(e) => setMsg(e.target.value)}
           className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0 dark:text-white"
         />
 
