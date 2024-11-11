@@ -10,10 +10,10 @@ import {
   sendFriendRequest,
   signin,
   signup,
-} from "../Controller/Auth/Auth.controller.ts";
-import { isAuthenticated } from "../middleware/auth.middle.ts";
-import { noUpload, singleAvatar } from "../middleware/multer.middle.ts";
-import { acceptRequestValidator, loginValidator, registerValidator, sendRequestValidator, validateHandler } from "../utils/validator.ts";
+} from "../Controller/Auth/Auth.controller.js";
+import { isAuthenticated } from "../middleware/auth.middle.js";
+import { noUpload, singleAvatar } from "../middleware/multer.middle.js";
+import { acceptRequestValidator, loginValidator, registerValidator, sendRequestValidator, validateHandler } from "../utils/validator.js";
 const router = express.Router();
 router.post("/signup",singleAvatar,registerValidator(),validateHandler, signup);
 router.post("/signin",noUpload,loginValidator(),validateHandler, signin);

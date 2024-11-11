@@ -1,22 +1,22 @@
-import userRoute from "./src/Routes/User.routes.ts";
-import chatRoute from "./src/Routes/Chat.routes.ts";
+import userRoute from "./src/Routes/User.routes.js";
+import chatRoute from "./src/Routes/Chat.routes.js";
 import express, { NextFunction } from "express";
-import { connectDb } from "./src/utils/ConnectDb.ts";
+import { connectDb } from "./src/utils/ConnectDb.js";
 import dotenv from "dotenv";
-import { errorMiddleware, TryCatch } from "./src/middleware/error.middle.ts";
+import { errorMiddleware, TryCatch } from "./src/middleware/error.middle.js";
 import cookieParser from "cookie-parser";
 import {Server, Socket} from "socket.io";
 import jwt from "jsonwebtoken";
 import cors from "cors"
 import {v2 as cloudinary} from "cloudinary"
 import { createServer } from "http";
-import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, ONLINE_USERS, START_TYPING, STOP_TYPING } from "./src/Constants/event.ts";
+import { CHAT_JOINED, CHAT_LEAVED, NEW_MESSAGE, ONLINE_USERS, START_TYPING, STOP_TYPING } from "./src/Constants/event.js";
 import { v4 as uuid } from "uuid";
-import { CHAT_TOKEN, corsOptions } from "./src/Constants/config.ts";
-import { ErrorHandler, getSockets } from "./src/utils/Features.ts";
-import { socketAuthenticator } from "./src/middleware/auth.middle.ts";
-import { Message } from "./src/Models/Message.model.ts";
-import { User } from "./src/Models/Users.model.ts";
+import { CHAT_TOKEN, corsOptions } from "./src/Constants/config.js";
+import { ErrorHandler, getSockets } from "./src/utils/Features.js";
+import { socketAuthenticator } from "./src/middleware/auth.middle.js";
+import { Message } from "./src/Models/Message.model.js";
+import { User } from "./src/Models/Users.model.js";
 import mongoose, { Date } from "mongoose";
 // import { createUser } from "./src/Seeders/user.ts";
 // import { createGroupChats, createMessages, createMessagesInAChat, createSingleChats } from "./src/Seeders/Chat.ts";

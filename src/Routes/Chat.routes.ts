@@ -3,8 +3,8 @@ import express from "express";
 import {
   attachmentsMulter,
   multerUpload,
-} from "../middleware/multer.middle.ts";
-import { isAuthenticated } from "../middleware/auth.middle.ts";
+} from "../middleware/multer.middle.js";
+import { isAuthenticated } from "../middleware/auth.middle.js";
 import {
   addMembers,
   deleteGroup,
@@ -17,8 +17,8 @@ import {
   removeMembers,
   renameGroup,
   uploadAttachment,
-} from "../Controller/Chat/Chat.controller.ts";
-import { addMemberValidator, chatIdValidator, leaveGroupValidator, newGroupValidator, removeMemberValidator, renameValidator, sendAttachmentsValidator, validateHandler } from "../utils/validator.ts";
+} from "../Controller/Chat/Chat.controller.js";
+import { addMemberValidator, chatIdValidator, leaveGroupValidator, newGroupValidator, removeMemberValidator, renameValidator, sendAttachmentsValidator, validateHandler } from "../utils/validator.js";
 
 const router = express.Router();
 

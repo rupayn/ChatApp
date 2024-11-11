@@ -3,14 +3,14 @@ import {
   NEW_ATTACHMENT,
   NEW_MESSAGE_ALERT,
   REFETCH_CHAT,
-} from "../../Constants/event.ts";
+} from "../../Constants/event.js";
 import { Request, Response, NextFunction } from "express";
-import { TryCatch } from "../../middleware/error.middle.ts";
-import { emitEvent, ErrorHandler } from "../../utils/Features.ts";
-import { Chat } from "../../Models/Chat.model.ts";
-import { User } from "../../Models/Users.model.ts";
-import { Message } from "../../Models/Message.model.ts";
-import { deleteFilesFromCloudinary } from "../../utils/cloudnary.ts";
+import { TryCatch } from "../../middleware/error.middle.js";
+import { emitEvent, ErrorHandler } from "../../utils/Features.js";
+import { Chat } from "../../Models/Chat.model.js";
+import { User } from "../../Models/Users.model.js";
+import { Message } from "../../Models/Message.model.js";
+import { deleteFilesFromCloudinary } from "../../utils/cloudnary.js";
 // import { uploadFilesToCloudinary } from "../../utils/cloudnaryMessage_model.ts";
 
 export const newGroupChat = TryCatch(

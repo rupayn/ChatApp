@@ -1,6 +1,6 @@
 import { Response } from "express"
 import jwt from "jsonwebtoken"
-import { userSocketIDs } from "../../index.ts";
+import { userSocketIDs } from "../../index.js";
 export const generateVerificationCode=()=>Math.round(Math.random()*1000000).toString()
 
 export const sendToken = (res: Response<any, Record<string, any>>,user: any,code: number,msg: string)=>{

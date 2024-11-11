@@ -1,5 +1,5 @@
 import { body, check, param, query, validationResult } from "express-validator";
-import { ErrorHandler } from "./Features.ts";
+import { ErrorHandler } from "./Features.js";
 import { NextFunction, Request } from "express";
 
 export const validateHandler = (req:any, res:any, next:any) => {

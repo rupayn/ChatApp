@@ -8,8 +8,13 @@
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "NodeNext",
-    "composite":true,
-    "emitDeclarationOnly": true,
-    "allowImportingTsExtensions": true
-  }
+    "composite": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "index.ts"],
+  "exclude": ["node_modules", "dist"]
 }

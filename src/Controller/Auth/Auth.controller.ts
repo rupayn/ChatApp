@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import { User } from "../../Models/Users.model.ts";
-import { emitEvent, ErrorHandler, sendToken, successHandler } from "../../utils/Features.ts";
+import { User } from "../../Models/Users.model.js";
+import { emitEvent, ErrorHandler, sendToken, successHandler } from "../../utils/Features.js";
 import { compare } from "bcrypt";
-import { TryCatch } from "../../middleware/error.middle.ts";
-import { Chat } from "../../Models/Chat.model.ts";
-import { NEW_REQUEST, REFETCH_CHAT } from "../../Constants/event.ts";
-import { Request as RequestModel } from "../../Models/Request.model.ts";
-import { uploadFilesToCloudinary } from "../../utils/cloudnary.ts";
+import { TryCatch } from "../../middleware/error.middle.js";
+import { Chat } from "../../Models/Chat.model.js";
+import { NEW_REQUEST, REFETCH_CHAT } from "../../Constants/event.js";
+import { Request as RequestModel } from "../../Models/Request.model.js";
+import { uploadFilesToCloudinary } from "../../utils/cloudnary.js";
 export const signup = TryCatch(
   async (req: Request, res: Response,next:NextFunction) => {
     const { fname, uname, password, email } = req.body;

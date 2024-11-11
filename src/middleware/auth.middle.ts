@@ -9,10 +9,10 @@ declare module "express-serve-static-core" {
 
 // Your existing code
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { TryCatch } from "./error.middle.ts";
-import { ErrorHandler } from "../utils/Features.ts";
-import { User } from "../Models/Users.model.ts";
-import { CHAT_TOKEN } from "../Constants/config.ts";
+import { TryCatch } from "./error.middle.js";
+import { ErrorHandler } from "../utils/Features.js";
+import { User } from "../Models/Users.model.js";
+import { CHAT_TOKEN } from "../Constants/config.js";
 
 export const isAuthenticated = TryCatch(async function (
   req: Request,
